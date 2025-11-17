@@ -1,0 +1,27 @@
+;for every bit of data output a full cycle of bit clock signal
+;each loop 32 data bits are outputted
+;swith the LCLK signal from hight to low after 32 data bits (corresponds to switching to the right audio channel)
+
+.program basic_audio
+.side_set 2
+
+.wrap_target
+    set x, 30      side 2
+    set y, 30      side 2
+    out pins, 1    side 1
+    nop            side 1
+loopa:
+    nop            side 3
+    nop            side 3
+    out pins, 1    side 1
+    jmp x-- loopa  side 1
+    nop            side 3
+    nop            side 3
+    out pins, 1    side 0
+    nop            side 0
+loopb:
+    nop            side 2
+    nop            side 2
+    out pins, 1    side 0
+    jmp y-- loopb  side 0
+.wrap
