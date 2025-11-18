@@ -20,16 +20,14 @@ int main()
 {
     stdio_init_all();
 
-    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::MONO,1);
+    IRQHandler irqHandler;
+
+    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::MONO,1,&irqHandler);
 
     device.initialize();
 
     while (true)
     {
-        if (GLOBAL_DEVICE_FLAG)
-        {
-            device.update();
-            GLOBAL_DEVICE_FLAG = false;
-        }
+        device.update();
     }
 }

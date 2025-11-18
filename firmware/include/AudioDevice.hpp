@@ -13,21 +13,10 @@
 //!!!!!!!!!!!!THIS CANNOT SUPPORT MULTIPLE DEVICES!!!!!!!
 //!!!!!!!!!!!!NEED TO IMPLEMENT MORE ADVANCED HANDLER FOR THAT!!!!!!!!
 //!!!!!!!!!!!!MAYBE DO AN INTERRUPT LESS IMPLEMENTATION USING DMAS!!!!!!
-bool GLOBAL_DEVICE_FLAG = false;
 
 //FIRST THING THAT WE WILL TRY TO ELIMINATE
 //REST AT LINE 312
-uint GLOBAL_CHANNEL;
 
-void IRQ_HANDLER_TEMP()
-{
-    if (dma_channel_get_irq0_status(GLOBAL_CHANNEL))
-    {
-        dma_channel_acknowledge_irq0(GLOBAL_CHANNEL);
-        GLOBAL_DEVICE_FLAG = true;
-    }
-}
-/*
 class AudioDevice;
 
 //TEST THIS LATER
@@ -39,20 +28,18 @@ private:
     std::array<AudioDevice *,8> devices;
 
     int n_devices;
+
+    void IRQ_handler_local();
 public:
     IRQHandler()
     {
         instance = this;
+        n_devices =   0;
     }
 
     static void IRQ_handler_static()
     {
-        instance->IRQ_handler_instance();
-    }
-
-    void IRQ_handler_instance()
-    {
-        devices[0]->confirm_interrupt();
+        instance->IRQ_handler_local();
     }
 
     void registerDevice(AudioDevice * device)
@@ -60,18 +47,19 @@ public:
         if (n_devices < 8)
         {
             devices[n_devices] = device;
+            n_devices++;
         }
-
     }
 
 };
 
-IRQHandler * IRQHandler::instance = nullptr;*/
+IRQHandler * IRQHandler::instance = nullptr;
 
 class AudioDevice
 {
 private:
     //----------HARDWARE DATA--------------
+
     struct Pins
     {
         uint data;
@@ -105,9 +93,14 @@ private:
     Buffer buffer;
     uint32_t *buffer_start_pointer; //we will provide this to the DMA
 
+    bool buffer_update_flag = false;
+
     uint64_t chunkcount = 0; //number of audio buffers outputted from this device
 
     const uint64_t SPS = 45045;
+
+    //------------INTERRUPT HANDLER---------
+    IRQHandler * IRQ_handler_ptr;
 
 public: //public types
     enum class DeviceMode {
@@ -129,6 +122,7 @@ public: //public types
         uint64_t sample;
         //INCLUDE SPS
     };
+
 private:
     //channel setup
     DeviceMode mode;
@@ -152,7 +146,7 @@ private:
 
 public: //public methods
     AudioDevice();
-    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels);
+    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr);
     ~AudioDevice();
 
     //factory functions
@@ -166,6 +160,17 @@ public: //public methods
 
     bool confirm_interrupt();
 };
+
+void IRQHandler::IRQ_handler_local()
+{
+    for (size_t i = 0; i < n_devices; i++)
+    {
+        if (devices[i]->confirm_interrupt())
+        {
+            break;
+        }
+    }
+}
 
 int16_t sample_callback(const AudioDevice::ChannelInfo &info);
 
@@ -228,7 +233,7 @@ inline void AudioDevice::arm_dma_channels_chained_irq()
 
     dma_channel_set_irq0_enabled(dma_channel_control, true);
 
-    irq_set_exclusive_handler(DMA_IRQ_0, IRQ_HANDLER_TEMP);
+    irq_set_exclusive_handler(DMA_IRQ_0, IRQHandler::IRQ_handler_static);
     irq_set_enabled(DMA_IRQ_0, true);
 
 }
@@ -273,12 +278,15 @@ AudioDevice::AudioDevice()
 
 }
 
-inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels)
+inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr)
 {
-    pins.data   =  dataPin;
-    pins.lck    =   lckPin;
-    mode        =    mode_;
-    channel_num = channels;
+    pins.data       =   dataPin;
+    pins.lck        =    lckPin;
+    mode            =     mode_;
+    channel_num     =  channels;
+    IRQ_handler_ptr = irq_h_ptr;
+    
+    IRQ_handler_ptr->registerDevice(this);
 }
 
 AudioDevice::~AudioDevice()
@@ -320,8 +328,6 @@ inline bool AudioDevice::initialize()
 
     arm_dma_channels_chained_irq();
 
-    GLOBAL_CHANNEL = dma_channel_control;
-
     dma_channel_start(dma_channel_buffer);
 
     pio_sm_set_enabled(pio.pio ,pio.sm ,true);
@@ -331,22 +337,33 @@ inline bool AudioDevice::initialize()
 
 inline bool AudioDevice::update()
 {
-    //SO FAR WE MOVE THE UPDATE LOGIC OUT OF HERE AND JUST CALL GENERATE
-    if (buffer_start_pointer == buffer.B)
+    if (buffer_update_flag)
     {
-        buffer_start_pointer = buffer.A;
+        if (buffer_start_pointer == buffer.B)
+        {
+            buffer_start_pointer = buffer.A;
+        }
+        else if (buffer_start_pointer == buffer.A)
+        {
+            buffer_start_pointer = buffer.B;
+        }
+        
+        generate_buffer();
+
+        buffer_update_flag = false;
+        
+        return true;
     }
-    else if (buffer_start_pointer == buffer.A)
-    {
-        buffer_start_pointer = buffer.B;
-    }
-    
-    //now we just generate a buffer on the new buffer pointer
-    generate_buffer();
     return false;
 }
 
 inline bool AudioDevice::confirm_interrupt()
 {
+    if (dma_channel_get_irq0_status(dma_channel_control))
+    {
+        dma_channel_acknowledge_irq0(dma_channel_control);
+        buffer_update_flag = true;
+        return true;
+    }
     return false;
 }
