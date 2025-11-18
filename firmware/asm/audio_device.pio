@@ -1,0 +1,6 @@
+.program audio_device
+
+loop:
+    pull
+    out pins, 1
+    jmp loop
