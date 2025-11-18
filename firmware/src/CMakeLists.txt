@@ -13,6 +13,7 @@ pico_enable_stdio_usb(${NAME} 1)
 target_link_libraries(${NAME}
         pico_stdlib
         hardware_pio
+        hardware_dma
 )
 
 set_target_properties(${NAME} PROPERTIES
