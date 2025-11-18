@@ -10,20 +10,18 @@
 //various helper functions for loading the program
 #include "audio_device.pio.h"
 
-//!!!!!!!!!!!!THIS CANNOT SUPPORT MULTIPLE DEVICES!!!!!!!
-//!!!!!!!!!!!!NEED TO IMPLEMENT MORE ADVANCED HANDLER FOR THAT!!!!!!!!
-//!!!!!!!!!!!!MAYBE DO AN INTERRUPT LESS IMPLEMENTATION USING DMAS!!!!!!
-
-//FIRST THING THAT WE WILL TRY TO ELIMINATE
-//REST AT LINE 312
-
 class AudioDevice;
 
-//TEST THIS LATER
 class IRQHandler
 {
 private:
     static IRQHandler * instance;
+
+    IRQHandler()
+    {
+        instance = this;
+        n_devices = 0;
+    }
 
     std::array<AudioDevice *,8> devices;
 
@@ -31,15 +29,23 @@ private:
 
     void IRQ_handler_local();
 public:
-    IRQHandler()
-    {
-        instance = this;
-        n_devices =   0;
-    }
+
+    IRQHandler(IRQHandler &handler_) = delete;
+
+    void operator=(const IRQHandler &hanlder_) = delete;
 
     static void IRQ_handler_static()
     {
         instance->IRQ_handler_local();
+    }
+
+    static IRQHandler * getIRQHandler()
+    {
+        if (instance == nullptr)
+        {
+            return new IRQHandler();
+        }
+        return instance;
     }
 
     void registerDevice(AudioDevice * device)

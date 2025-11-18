@@ -29,9 +29,9 @@ int main()
 {
     stdio_init_all();
 
-    IRQHandler irqHandler;
+    auto irqHandler = IRQHandler::getIRQHandler();
 
-    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::STEREO,1,&irqHandler);
+    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::STEREO,1,irqHandler);
 
     device.initialize();
 
