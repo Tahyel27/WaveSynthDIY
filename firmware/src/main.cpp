@@ -12,8 +12,17 @@ int16_t sinegen(double t, int amp, double f)
 int16_t sample_callback(const AudioDevice::ChannelInfo &info)
 {
     const int maxamp = 32767 / 2.5;
-    double t = double(info.chunk + info.sample) / double(45045);
-    return sinegen(t,maxamp/5,440);
+    double t = double(info.chunk + info.sample) / double(info.SPS);
+    int16_t v = 0;
+    if (info.chmode == AudioDevice::ChannelMode::LEFT)
+    {
+        v = sinegen(t, maxamp / 5, 340);
+    }
+    else
+    {
+        v = sinegen(t, maxamp / 5, 440);
+    }
+    return v;
 }
 
 int main()
@@ -22,7 +31,7 @@ int main()
 
     IRQHandler irqHandler;
 
-    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::MONO,1,&irqHandler);
+    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::STEREO,1,&irqHandler);
 
     device.initialize();
 

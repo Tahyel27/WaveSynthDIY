@@ -117,10 +117,10 @@ public: //public types
     struct ChannelInfo
     {
         uint channel_num;
-        ChannelMode mode;
+        ChannelMode chmode;
         uint64_t chunk;
         uint64_t sample;
-        //INCLUDE SPS
+        uint64_t SPS;
     };
 
 private:
@@ -254,17 +254,17 @@ inline void AudioDevice::generate_buffer()
     {
         for (size_t i = 0; i < BUFFSIZE ; i += 2)
         {
-            int16_t val = sample_callback(ChannelInfo{0,ChannelMode::MONO,chunkcount+1,i});
+            int16_t val = sample_callback(ChannelInfo{0,ChannelMode::MONO,chunkcount+1,i,SPS});
             buffer_start_pointer[i] = int16_to_uint32(val);
             buffer_start_pointer[i + 1] = int16_to_uint32(val);
         }
     }
     else
     {
-        for (size_t i = 0; i < BUFFSIZE ; i++)
+        for (size_t i = 0; i < BUFFSIZE ; i += 2)
         {
-            int16_t valL = sample_callback(ChannelInfo{0, ChannelMode::LEFT, chunkcount + 1, i});
-            int16_t valR = sample_callback(ChannelInfo{1, ChannelMode::RIGHT, chunkcount + 1, i});
+            int16_t valL = sample_callback(ChannelInfo{0, ChannelMode::LEFT, chunkcount + 1, i,SPS});
+            int16_t valR = sample_callback(ChannelInfo{1, ChannelMode::RIGHT, chunkcount + 1, i,SPS});
             buffer_start_pointer[i] = int16_to_uint32(valL);
             buffer_start_pointer[i + 1] = int16_to_uint32(valR);
         }   
