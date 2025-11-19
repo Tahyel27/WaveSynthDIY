@@ -94,8 +94,18 @@ private:
     {
         uint32_t A[BUFFSIZE];
         uint32_t B[BUFFSIZE];
+        uint32_t C[BUFFSIZE];
     };
 
+    struct BufferPointers
+    {
+        uint32_t* A;
+        uint32_t* B;
+        uint32_t* C;
+    };
+    BufferPointers buffer_ptrs;
+
+    bool double_buffer_mode = true;
     Buffer buffer;
     uint32_t *buffer_start_pointer; //we will provide this to the DMA
 
@@ -129,6 +139,14 @@ public: //public types
         uint64_t SPS;
     };
 
+    struct DeviceInfo
+    {
+        uint64_t SPS;
+        DeviceMode mode;
+        size_t buffsize;
+    };
+    
+
 private:
     //channel setup
     DeviceMode mode;
@@ -152,7 +170,7 @@ private:
 
 public: //public methods
     AudioDevice();
-    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr);
+    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr, bool double_buffer);
     ~AudioDevice();
 
     //factory functions
@@ -165,6 +183,13 @@ public: //public methods
     bool update();
 
     bool confirm_interrupt();
+
+    void writeAudio(int i, int16_t value, ChannelMode mode);
+
+    DeviceInfo getDeviceInfo()
+    {
+        return DeviceInfo{SPS,mode,BUFFSIZE/2};
+    }
 };
 
 void IRQHandler::IRQ_handler_local()
@@ -250,7 +275,12 @@ inline void AudioDevice::init_buffers()
     {
         buffer.A[i] = 0;
         buffer.B[i] = 0;
+        buffer.C[i] = 0;
     }
+
+    buffer_ptrs.A = buffer.A;
+    buffer_ptrs.B = buffer.B;
+    buffer_ptrs.C = buffer.C;
     
 }
 
@@ -284,13 +314,15 @@ AudioDevice::AudioDevice()
 
 }
 
-inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr)
+inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr, bool double_buffer)
 {
     pins.data       =   dataPin;
     pins.lck        =    lckPin;
     mode            =     mode_;
     channel_num     =  channels;
     IRQ_handler_ptr = irq_h_ptr;
+
+    double_buffer_mode = double_buffer;
     
     IRQ_handler_ptr->registerDevice(this);
 }
@@ -322,7 +354,14 @@ inline bool AudioDevice::initialize()
     init_buffers();
 
     //the DMA will start reading from buffer A, so we prepare buffer B
-    buffer_start_pointer = buffer.B;
+    if (double_buffer_mode)
+    {
+        buffer_start_pointer = buffer.B;
+    }
+    else
+    {
+        buffer_start_pointer = buffer.C;
+    }
 
     dma_channel_buffer  = dma_claim_unused_channel(false);
     dma_channel_control = dma_claim_unused_channel(false);
@@ -345,17 +384,29 @@ inline bool AudioDevice::update()
 {
     if (buffer_update_flag)
     {
-        if (buffer_start_pointer == buffer.B)
+        if (double_buffer_mode)
         {
-            buffer_start_pointer = buffer.A;
-        }
-        else if (buffer_start_pointer == buffer.A)
-        {
-            buffer_start_pointer = buffer.B;
-        }
-        
-        generate_buffer();
+            if (buffer_start_pointer == buffer.B)
+            {
+                buffer_start_pointer = buffer.A;
+            }
+            else if (buffer_start_pointer == buffer.A)
+            {
+                buffer_start_pointer = buffer.B;
+            }
 
+            generate_buffer();
+        }
+        else
+        {
+            //Since we start with buffer A loaded into the dma we should load in buffer C as second and D as third, so C is always the next buffer
+            uint32_t * tmp_ptr = buffer_ptrs.C;
+            buffer_ptrs.C = buffer_ptrs.B;
+            buffer_ptrs.B = buffer_ptrs.A;
+            buffer_ptrs.A = tmp_ptr;
+
+            buffer_start_pointer = buffer_ptrs.C;
+        }
         buffer_update_flag = false;
         
         return true;
@@ -372,4 +423,22 @@ inline bool AudioDevice::confirm_interrupt()
         return true;
     }
     return false;
+}
+
+inline void AudioDevice::writeAudio(int i, int16_t value, ChannelMode mode)
+{
+    if (mode == ChannelMode::LEFT)
+    {
+        buffer_ptrs.B[2*i] = int16_to_uint32(value);
+    }
+    else if (mode == ChannelMode::RIGHT)
+    {
+        buffer_ptrs.B[2*i + 1] = int16_to_uint32(value);
+    }
+    else
+    {
+        buffer_ptrs.B[2*i] = int16_to_uint32(value);
+        buffer_ptrs.B[2*i + 1] = int16_to_uint32(value);
+    }
+    
 }
