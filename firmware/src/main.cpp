@@ -37,21 +37,9 @@ struct sineSynth
     }
 };
 
-void writeAudioIntoDevice(AudioDevice &device, sineSynth &synth)
-{
-    const int maxamp = 32767 / 2.5;
-    uint64_t SPS = device.getDeviceInfo().SPS;
-    for (size_t i = 0; i < device.getDeviceInfo().buffsize; i++)
-    {
-        device.writeAudio(i,synth(440,maxamp,SPS),AudioDevice::ChannelMode::MONO);
-    }
-}
-
 int main()
 {
     stdio_init_all();
-
-    sleep_ms(6000);
 
     auto irqHandler = IRQHandler::getIRQHandler();
 
@@ -65,7 +53,12 @@ int main()
     {
         if(device.update())
         {
-            writeAudioIntoDevice(device,synth);
+            auto deviceInfo = device.getDeviceInfo();
+
+            for (size_t i = 0; i < deviceInfo.buffsize; i++)
+            {
+                device.writeAudio(i, synth(440, deviceInfo.maxamp / 4, deviceInfo.SPS), AudioDevice::ChannelMode::MONO);
+            }
         }
     }
 }

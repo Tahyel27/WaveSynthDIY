@@ -114,6 +114,7 @@ private:
     uint64_t chunkcount = 0; //number of audio buffers outputted from this device
 
     const uint64_t SPS = 45045;
+    const int maxamp = 32767 / 2.5;
 
     //------------INTERRUPT HANDLER---------
     IRQHandler * IRQ_handler_ptr;
@@ -144,6 +145,7 @@ public: //public types
         uint64_t SPS;
         DeviceMode mode;
         size_t buffsize;
+        int maxamp;
     };
     
 
@@ -188,7 +190,7 @@ public: //public methods
 
     DeviceInfo getDeviceInfo()
     {
-        return DeviceInfo{SPS,mode,BUFFSIZE/2};
+        return DeviceInfo{SPS,mode,BUFFSIZE/2,maxamp};
     }
 };
 
