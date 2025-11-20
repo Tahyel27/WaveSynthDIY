@@ -942,16 +942,6 @@
 	)
 	(wire
 		(pts
-			(xy 43.18 72.39) (xy 49.53 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "063f31c3-65d5-4089-a9e9-121cc47873bc")
-	)
-	(wire
-		(pts
 			(xy 29.21 49.53) (xy 30.48 49.53)
 		)
 		(stroke
@@ -969,6 +959,16 @@
 			(type default)
 		)
 		(uuid "4be8277e-13c0-4ef3-bfcc-b8d9a51dc52c")
+	)
+	(wire
+		(pts
+			(xy 40.64 69.85) (xy 49.53 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7041972d-68ad-41dd-86e3-7d0ed0fa45d7")
 	)
 	(wire
 		(pts
@@ -1044,7 +1044,7 @@
 	)
 	(global_label "PIO_CLK_15"
 		(shape input)
-		(at 43.18 72.39 180)
+		(at 40.64 69.85 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1054,7 +1054,7 @@
 		)
 		(uuid "3733efe3-96cd-4cb7-90eb-662c53041d7b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 29.0672 72.39 0)
+			(at 26.5272 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1213,6 +1213,73 @@
 			(project ""
 				(path "/a0ef2865-da3e-4a7c-abf4-5bbeccf70e64"
 					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDREF")
+		(at 49.53 39.37 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7d5e8002-cff3-430e-99be-1a58ba8a5c89")
+		(property "Reference" "#PWR05"
+			(at 43.18 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GNDREF"
+			(at 45.72 39.3699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 49.53 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 49.53 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GNDREF\" , reference supply ground"
+			(at 49.53 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "faa58660-dd8b-4163-9385-1be2016b37fa")
+		)
+		(instances
+			(project ""
+				(path "/a0ef2865-da3e-4a7c-abf4-5bbeccf70e64"
+					(reference "#PWR05")
 					(unit 1)
 				)
 			)

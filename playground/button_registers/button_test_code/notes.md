@@ -14,3 +14,8 @@ Instead of setting clock inhib to high, we can set clock to constant high direct
 1) set up the circuit with one button, scope and pulldown resistor
 2) write PIO code to provide clock signal and LD signal, provide a single pulse on the latch and then keep pulsing the clock
 3) check shift register output on scope
+
+**TEST PASSED SUCCESFULLY**
+ * make sure to ground all input, especially SERIAL properly
+
+ 

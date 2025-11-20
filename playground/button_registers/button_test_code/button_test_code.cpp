@@ -14,7 +14,7 @@ void blink_program_init(PIO pio, uint sm, uint offset, uint pinl, uint pinclk)
 
     sm_config_set_set_pins(&c, pinl, 1);
     sm_config_set_sideset_pins(&c, pinclk);
-    sm_config_set_clkdiv_int_frac8(&c, 10, 1);
+    sm_config_set_clkdiv_int_frac8(&c, 30, 1);
 
     pio_sm_init(pio, sm, offset, &c);
 }
@@ -27,7 +27,7 @@ void test1(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk) {
 
     //pio->txf[sm] = (125000000 / (2 * freq)) - 3;
 
-    
+
 }
 
 int main()
