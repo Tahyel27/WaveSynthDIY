@@ -11,7 +11,7 @@
 #include "audio_device.pio.h"
 
 class AudioDevice;
-
+//!!!!!!!!!!!MAKE MORE GENERAL
 class IRQHandler
 {
 private:
@@ -90,7 +90,7 @@ private:
     //-----------------------------------
     //--------AUDIO BUFFERS AND CONTROLS---
     static const size_t BUFFSIZE = 2048;
-    struct Buffer
+    struct Buffer    //MAYBE REMOVE
     {
         uint32_t A[BUFFSIZE];
         uint32_t B[BUFFSIZE];
@@ -104,7 +104,7 @@ private:
         uint32_t* C;
     };
     BufferPointers buffer_ptrs;
-
+    //!!!!!!!!!!VARIABLE BUFFER SIZE
     bool double_buffer_mode = true;
     Buffer buffer;
     uint32_t *buffer_start_pointer; //we will provide this to the DMA
@@ -382,7 +382,7 @@ inline bool AudioDevice::initialize()
     return true;
 }
 
-inline bool AudioDevice::update()
+inline bool AudioDevice::update() //!!!!!!!!!!!!CLEAN UP BUFFER SWAPPING AND MAKE ONLY TWO BUFFERS!!!!!!
 {
     if (buffer_update_flag)
     {

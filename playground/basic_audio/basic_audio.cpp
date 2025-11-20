@@ -229,7 +229,7 @@ int16_t lpf(double sample, double cutoff)
 inline int16_t get_sample(double t, uint64_t samp)
 {
     const int maxamp = 32767 / 2.5;
-    return sinegen(t,maxamp,440);
+    return sinegen(t,maxamp/5,440);
     //uncomment for a simple tune
     /* int16_t sample = saw(t,174,maxamp/3)+saw(t,172,maxamp/3)+saw(t,176,maxamp/3);
     sample = sample + saw(t, 174, maxamp / 3) + saw(t, 172, maxamp / 3) + saw(t, 176, maxamp / 3);
