@@ -58,12 +58,12 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
         }
         printf("filled FIFO in %i loops \n", loop_count);
         
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < 4; i++)  //this setup will read 4 words, and we discard the first, because it is from the previous read
         {
             words[i] = pio_sm_get_blocking(pio, sm);
             //printf("%x ", word);
         }
-        for (size_t w = 0; w < 4; w++)
+        /*for (size_t w = 0; w < 4; w++) //code for readingg four words
         {
             for (size_t i = 0; i < 32; i++)
             {
@@ -72,14 +72,22 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
                 printf("%d ", button);
             }
             printf("\n");
+        }*/
+
+        for (size_t i = 0; i < 32; i++)
+        {
+            bool button = ((words[1] | mask) == 0xFFFFFFFF);
+            words[1] = words[1] << 1;
+            printf("%d ", button);
         }
-        
+        printf("\n");
+
         //printf("\n");
 
         pio_sm_clear_fifos(pio, sm);
         //printf("%d\n", pio_sm_get_rx_fifo_level(pio, sm));
 
-        sleep_ms(500);
+        sleep_ms(1000); //slowed down so we are testing if we really get the latest state
     }
 }
 

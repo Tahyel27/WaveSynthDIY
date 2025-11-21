@@ -32,3 +32,7 @@ Instead of setting clock inhib to high, we can set clock to constant high direct
 
 now need to decode the signal received and figure out fifo timings
 so I noticed that with the naive implementation, where the state machine just stalls, the first thing that gets dumped into the RX FIFO is an old value, from the previous measurement cycle, need to clear it out somehow
+
+one fix would be to add an empty push, after reading ALL the buttons, so for 128 registers, we would put this push after 4 normal pushes, this of course brings extensibility issues, but should be stable
+Another fix might be to use pio_sm_restart() - ok so this wont work, since it wont reset the PC, but calling init might, or writing an explicit jump instruction
+If we are reading 32 buttons, then just discarding the first word we get is perfectly fine. - implement this first
