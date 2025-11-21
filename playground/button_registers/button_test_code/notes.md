@@ -17,5 +17,11 @@ Instead of setting clock inhib to high, we can set clock to constant high direct
 
 **TEST PASSED SUCCESFULLY**
  * make sure to ground all input, especially SERIAL properly
+ * shift register stable at clock divider 4, at 3 issues start appearing, fails at 2, will run at like 20 or 10 probably
+ * time difference between clock signal and returning signal about 34 ns
 
- 
+ ### test 2 - read serial in data
+
+1) same setup as test 1, but pin 13 will read data
+2) add an input pin to PIO loop
+3) clear fifo, allow to fill up, read
