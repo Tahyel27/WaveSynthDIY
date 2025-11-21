@@ -8,6 +8,9 @@ Maybe using  mov rxfifo[y], isr could be beneficial for us, we block the RX FIFO
 
 *notes on shift register*
 Instead of setting clock inhib to high, we can set clock to constant high directly, since they are connected by an OR gate
+it first shifts out the pin with the highest letter, but lowest pin number
+so for multiple connected shift registers the sequence will be like [H1 G1 F1 E1 D1 C1 B1 A1, H2 G2 F2 ...]
+in default configuration, the "closest" pin will be LSB, so we set it to left, for more readability
 
 ### test 1 - check with scope
 

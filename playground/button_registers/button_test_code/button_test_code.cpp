@@ -19,6 +19,7 @@ void blink_program_init(PIO pio, uint sm, uint offset, uint pinl, uint pinclk, u
     sm_config_set_set_pins(&c, pinl, 1);
     sm_config_set_sideset_pins(&c, pinclk);
     sm_config_set_clkdiv_int_frac8(&c, 3, 1);
+    sm_config_set_in_shift(&c, false, false, 32); //so the closest pin is the first in the register/FIFO
 
     pio_sm_init(pio, sm, offset, &c);
 }
