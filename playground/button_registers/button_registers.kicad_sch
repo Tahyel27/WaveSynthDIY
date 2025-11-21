@@ -930,6 +930,12 @@
 		(color 0 0 0 0)
 		(uuid "8408f3b3-6e18-401e-b81b-cc9990ce0b5d")
 	)
+	(junction
+		(at 77.47 39.37)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d57a6635-70cc-4136-8590-5af0c6110a09")
+	)
 	(wire
 		(pts
 			(xy 30.48 49.53) (xy 30.48 53.34)
@@ -972,7 +978,17 @@
 	)
 	(wire
 		(pts
-			(xy 74.93 39.37) (xy 80.01 39.37)
+			(xy 77.47 27.94) (xy 87.63 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "72d88f3a-694f-417e-9567-1c2d158a0db7")
+	)
+	(wire
+		(pts
+			(xy 74.93 39.37) (xy 77.47 39.37)
 		)
 		(stroke
 			(width 0)
@@ -989,6 +1005,26 @@
 			(type default)
 		)
 		(uuid "820cdfb7-be98-44e6-b08c-19ed55caf350")
+	)
+	(wire
+		(pts
+			(xy 77.47 39.37) (xy 77.47 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a9fd6066-e13d-46ec-bc11-98e23e49cac9")
+	)
+	(wire
+		(pts
+			(xy 77.47 39.37) (xy 80.01 39.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd6c8a5f-7996-4613-adb2-706ca53219a3")
 	)
 	(wire
 		(pts
@@ -1077,6 +1113,28 @@
 		(uuid "4fddf251-7bbd-4038-95ea-29b512a58481")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 89.2242 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICO_INPUT_13"
+		(shape input)
+		(at 87.63 27.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "bd601663-ee39-4dda-b178-2ac10f65717c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 104.9481 27.94 0)
 			(effects
 				(font
 					(size 1.27 1.27)
