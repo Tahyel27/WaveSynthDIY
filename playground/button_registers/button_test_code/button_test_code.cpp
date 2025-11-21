@@ -4,23 +4,27 @@
 
 #include "blink.pio.h"
 
-void blink_program_init(PIO pio, uint sm, uint offset, uint pinl, uint pinclk)
+void blink_program_init(PIO pio, uint sm, uint offset, uint pinl, uint pinclk, uint pinin)
 {
     pio_sm_config c = blink_program_get_default_config(offset);
     pio_gpio_init(pio, pinl);
     pio_gpio_init(pio, pinclk);
+    pio_gpio_init(pio, pinin);
+
     pio_sm_set_consecutive_pindirs(pio, sm, pinl, 1, true);
     pio_sm_set_consecutive_pindirs(pio, sm, pinclk, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, pinin, 1, false);
 
+    sm_config_set_in_pins(&c, pinin);
     sm_config_set_set_pins(&c, pinl, 1);
     sm_config_set_sideset_pins(&c, pinclk);
-    sm_config_set_clkdiv_int_frac8(&c, 30, 1);
+    sm_config_set_clkdiv_int_frac8(&c, 100, 1);
 
     pio_sm_init(pio, sm, offset, &c);
 }
 
 void test1(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk) {
-    blink_program_init(pio, sm, offset, pinlatch, pinclk);
+    blink_program_init(pio, sm, offset, pinlatch, pinclk, 13);
     pio_sm_set_enabled(pio, sm, true);
 
     //printf("Blinking pin %d at %d Hz\n", pin, freq);
@@ -30,7 +34,26 @@ void test1(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk) {
 
 }
 
-int main()
+void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin)
+{
+    blink_program_init(pio, sm, offset, pinlatch, pinclk, 13);
+    pio_sm_set_enabled(pio, sm, true);
+
+    for (size_t i = 0; i < 100; i++)
+    {
+        for (size_t i = 0; i < 3; i++)
+        {
+            uint32_t word = pio_sm_get_blocking(pio, sm);
+            printf("%x ", word);
+            printf("%d\n", pio_sm_get_rx_fifo_level(pio, sm));
+        }
+        pio_sm_clear_fifos(pio, sm);
+
+        sleep_ms(500);
+    }
+}
+
+    int main()
 {
     stdio_init_all();
 
@@ -40,11 +63,13 @@ int main()
     uint offset = pio_add_program(pio, &blink_program);
     int pinlatch = 14;
     int pinclk = 15;
+    int pinin = 13;
 
     bool success = pio_claim_free_sm_and_add_program(&blink_program, &pio, &sm, &offset);
     printf("Loaded program at %d\n", offset);
     
-    test1(pio, 0, offset, pinlatch, pinclk);
+    //test1(pio, 0, offset, pinlatch, pinclk);
+    test2(pio, sm, offset, pinlatch, pinclk, pinin);
 
     while (true) {
         printf("Hello, world!\n");

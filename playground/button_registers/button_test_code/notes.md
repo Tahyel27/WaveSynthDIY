@@ -25,3 +25,9 @@ Instead of setting clock inhib to high, we can set clock to constant high direct
 1) same setup as test 1, but pin 13 will read data
 2) add an input pin to PIO loop
 3) clear fifo, allow to fill up, read
+
+**TEST PASSED SUCCESFULLY**
+ * was able to rad a different value by changing the button press
+ * some weird timings of read operations noted on scope
+
+now need to decode the signal received
