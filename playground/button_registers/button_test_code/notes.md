@@ -31,3 +31,4 @@ Instead of setting clock inhib to high, we can set clock to constant high direct
  * some weird timings of read operations noted on scope
 
 now need to decode the signal received and figure out fifo timings
+so I noticed that with the naive implementation, where the state machine just stalls, the first thing that gets dumped into the RX FIFO is an old value, from the previous measurement cycle, need to clear it out somehow

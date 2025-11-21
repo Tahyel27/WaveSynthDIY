@@ -42,26 +42,44 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
     for (size_t i = 0; i < 1000; i++)
     {
         pio_sm_clear_fifos(pio, sm);
-        sleep_us(2);
-        uint32_t word = 0;
+        //sleep_us(2);
+        uint32_t words[4];
         const uint32_t mask = 0x7FFFFFFF;
+        int loop_count = 0;
+        while (pio_sm_get_rx_fifo_level(pio, sm) < 4)
+        {
+            sleep_us(1);
+            if (loop_count > 100)
+            {
+                printf("failed to fill fifo in 100 iterations\n");
+                break;
+            }
+            
+        }
+        printf("filled FIFO in %i loops \n", loop_count);
+        
         for (size_t i = 0; i < 4; i++)
         {
-            word = pio_sm_get_blocking(pio, sm);
+            words[i] = pio_sm_get_blocking(pio, sm);
             //printf("%x ", word);
         }
-        for (size_t i = 0; i < 32; i++)
+        for (size_t w = 0; w < 4; w++)
         {
-            bool button = ((word | mask) == 0xFFFFFFFF);
-            word = word << 1;
-            printf("%d ", button);
+            for (size_t i = 0; i < 32; i++)
+            {
+                bool button = ((words[w] | mask) == 0xFFFFFFFF);
+                words[w] = words[w] << 1;
+                printf("%d ", button);
+            }
+            printf("\n");
         }
-        printf("\n");
+        
+        //printf("\n");
 
         pio_sm_clear_fifos(pio, sm);
         //printf("%d\n", pio_sm_get_rx_fifo_level(pio, sm));
 
-        sleep_ms(50);
+        sleep_ms(500);
     }
 }
 
