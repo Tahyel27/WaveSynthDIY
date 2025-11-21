@@ -88,9 +88,10 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
                 printf("failed to fill fifo in 100 iterations\n");
                 break;
             }
+            loop_count++;
             
         }
-        //printf("filled FIFO in %i loops \n", loop_count);
+        printf("filled FIFO in %i loops \n", loop_count);
         
         for (size_t i = 0; i < 4; i++)  //this setup will read 4 words, and we discard the first, because it is from the previous read
         {
