@@ -1,8 +1,12 @@
 #include <stdio.h>
+#include <queue>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 
 #include "blink.pio.h"
+
+int buttons_prev[32];
+
 
 void blink_program_init(PIO pio, uint sm, uint offset, uint pinl, uint pinclk, uint pinin)
 {
@@ -35,12 +39,41 @@ void test1(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk) {
 
 }
 
+bool contains(int *arr, size_t size, int value) 
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        if(arr[i] == value)
+            return true;
+    }
+    return false;
+    
+}
+
+void fill(int *arr, size_t size, int value)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        arr[i] = value;
+    }
+    
+}
+
+void copy(int *arr_to, int *arr_from, size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        arr_to[i] = arr_from[i];
+    }
+    
+}
+
 void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin)
 {
     blink_program_init(pio, sm, offset, pinlatch, pinclk, 13);
     pio_sm_set_enabled(pio, sm, true);
 
-    for (size_t i = 0; i < 1000; i++)
+    for (size_t i = 0; i < 10000; i++)
     {
         pio_sm_clear_fifos(pio, sm);
         //sleep_us(2);
@@ -57,7 +90,7 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
             }
             
         }
-        printf("filled FIFO in %i loops \n", loop_count);
+        //printf("filled FIFO in %i loops \n", loop_count);
         
         for (size_t i = 0; i < 4; i++)  //this setup will read 4 words, and we discard the first, because it is from the previous read
         {
@@ -74,25 +107,44 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
             }
             printf("\n");
         }*/
+        int buttons[32];
+        fill(buttons, 32, -1);
 
+        int b_index = 0;
         for (size_t i = 0; i < 32; i++)
         {
-            bool button = ((words[1] | mask) == 0xFFFFFFFF);
+            bool down = ((words[1] | mask) == 0xFFFFFFFF);
             words[1] = words[1] << 1;
-            printf("%d ", button);
+            //printf("%d ", down);
+            if (down)
+            {
+                if (!contains(buttons_prev, 32, i))
+                {
+                    printf("Button %i pressed\n",i);
+                }
+                buttons[b_index++] = i;
+            }
+            else
+            {
+                if (contains(buttons_prev, 32, i))
+                {
+                    printf("Button %i released\n", i);
+                }
+            }
         }
-        printf("\n");
+        copy(buttons_prev, buttons, 32);
+        //printf("\n");
 
         //printf("\n");
 
         pio_sm_clear_fifos(pio, sm);
         //printf("%d\n", pio_sm_get_rx_fifo_level(pio, sm));
 
-        sleep_ms(1000); //slowed down so we are testing if we really get the latest state
+        sleep_ms(10); //slowed down so we are testing if we really get the latest state
     }
 }
 
-    int main()
+int main()
 {
     stdio_init_all();
 
@@ -106,6 +158,8 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
 
     bool success = pio_claim_free_sm_and_add_program(&blink_program, &pio, &sm, &offset);
     printf("Loaded program at %d\n", offset);
+
+    fill(buttons_prev, 32, -1);
     
     //test1(pio, 0, offset, pinlatch, pinclk);
     test2(pio, sm, offset, pinlatch, pinclk, pinin);
