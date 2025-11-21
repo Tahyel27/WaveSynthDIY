@@ -18,7 +18,7 @@ void blink_program_init(PIO pio, uint sm, uint offset, uint pinl, uint pinclk, u
     sm_config_set_in_pins(&c, pinin);
     sm_config_set_set_pins(&c, pinl, 1);
     sm_config_set_sideset_pins(&c, pinclk);
-    sm_config_set_clkdiv_int_frac8(&c, 100, 1);
+    sm_config_set_clkdiv_int_frac8(&c, 3, 1);
 
     pio_sm_init(pio, sm, offset, &c);
 }
@@ -39,17 +39,29 @@ void test2(PIO pio, uint sm, uint offset, uint pinlatch, uint pinclk, uint pinin
     blink_program_init(pio, sm, offset, pinlatch, pinclk, 13);
     pio_sm_set_enabled(pio, sm, true);
 
-    for (size_t i = 0; i < 100; i++)
+    for (size_t i = 0; i < 1000; i++)
     {
-        for (size_t i = 0; i < 3; i++)
-        {
-            uint32_t word = pio_sm_get_blocking(pio, sm);
-            printf("%x ", word);
-            printf("%d\n", pio_sm_get_rx_fifo_level(pio, sm));
-        }
         pio_sm_clear_fifos(pio, sm);
+        sleep_us(2);
+        uint32_t word = 0;
+        const uint32_t mask = 0x7FFFFFFF;
+        for (size_t i = 0; i < 4; i++)
+        {
+            word = pio_sm_get_blocking(pio, sm);
+            //printf("%x ", word);
+        }
+        for (size_t i = 0; i < 32; i++)
+        {
+            bool button = ((word | mask) == 0xFFFFFFFF);
+            word = word << 1;
+            printf("%d ", button);
+        }
+        printf("\n");
 
-        sleep_ms(500);
+        pio_sm_clear_fifos(pio, sm);
+        //printf("%d\n", pio_sm_get_rx_fifo_level(pio, sm));
+
+        sleep_ms(50);
     }
 }
 

@@ -30,4 +30,4 @@ Instead of setting clock inhib to high, we can set clock to constant high direct
  * was able to rad a different value by changing the button press
  * some weird timings of read operations noted on scope
 
-now need to decode the signal received
+now need to decode the signal received and figure out fifo timings
