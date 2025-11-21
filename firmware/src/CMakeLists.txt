@@ -1,4 +1,4 @@
-add_executable(${NAME} main.cpp )
+add_executable(${NAME} main.cpp ButtonArray.cpp)
 
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/audio_device.pio)
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/button_array.pio)
