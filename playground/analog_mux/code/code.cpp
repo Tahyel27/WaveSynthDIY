@@ -49,14 +49,24 @@ int main()
     adc_select_input(0);
 
     while (true) {
-        for (int i = 0; i < 8; i++)
+        /*for (int i = 0; i < 8; i++)
         {
             output3bit(i, my_pins);
             uint16_t read = adc_read();
             printf("Voltage: %f\n", ADCtoFloat(read));
             sleep_us(200);
-        }
+        }*/
 
-        sleep_ms(500);
+
+        //sleep_ms(500);
+        //to check response time
+        output3bit(0, my_pins);
+        uint16_t read = adc_read();
+        sleep_ms(100);
+        output3bit(4, my_pins);
+        sleep_us(6);
+        read = adc_read();
+        printf("Voltage: %f\n", ADCtoFloat(read));
+        sleep_ms(100); // delay to ensure stability
     }
 }
