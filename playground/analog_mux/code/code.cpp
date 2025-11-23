@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "hardware/adc.h"
 
 struct pins
 {
@@ -27,6 +28,11 @@ void output3bit(uint8_t value, pins pins)
     gpio_put(pins.c, value & 1);
 }
 
+float ADCtoFloat(uint16_t ADCvalue)
+{
+    return ADCvalue * (3.3f / (1 << 12));   
+}
+
 
 int main()
 {
@@ -34,14 +40,20 @@ int main()
 
     //first we want to output a number 4 on pins 19,20,21
     pins my_pins = {19, 20, 21};
+    uint areadpin = 26;
 
     initPins(my_pins);
-    
+
+    adc_init();
+    adc_gpio_init(areadpin);
+    adc_select_input(0);
 
     while (true) {
         for (int i = 0; i < 8; i++)
         {
             output3bit(i, my_pins);
+            uint16_t read = adc_read();
+            printf("Voltage: %f\n", ADCtoFloat(read));
             sleep_ms(250);
         }
 
