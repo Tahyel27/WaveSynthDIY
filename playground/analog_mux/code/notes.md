@@ -1,0 +1,1 @@
+at 200us between reads the ADC output looked stable, reading 1.94 +- 0.01

@@ -54,7 +54,7 @@ int main()
             output3bit(i, my_pins);
             uint16_t read = adc_read();
             printf("Voltage: %f\n", ADCtoFloat(read));
-            sleep_ms(250);
+            sleep_us(200);
         }
 
         sleep_ms(500);
