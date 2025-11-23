@@ -9,10 +9,16 @@ public:
         uint A;
         uint B;
         uint C;
+        uint read;
     };
     Pins pins;
 
-    AnalogArray(uint A, uint B, uint C);
+    AnalogArray(uint A, uint B, uint C, uint read);
     ~AnalogArray(){};
+
+    uint16_t readChannel(uint channel); // Read a specific ADC channe
+
+    float readChannelVoltage(uint channel); // Read a specific ADC channel as
 private:
+    void write3bits(uint v);
 };
