@@ -1,4 +1,4 @@
-add_executable(${NAME} main.cpp ButtonArray.cpp)
+add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp)
 
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/audio_device.pio)
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/button_array.pio)
@@ -15,6 +15,7 @@ target_link_libraries(${NAME}
         pico_stdlib
         hardware_pio
         hardware_dma
+        hardware_adc
 )
 
 set_target_properties(${NAME} PROPERTIES

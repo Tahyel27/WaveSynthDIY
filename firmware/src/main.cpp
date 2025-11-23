@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "AudioDevice.hpp"
+#include "AnalogArray.hpp"
 
 int16_t sinegen(double t, int amp, double f)
 {
