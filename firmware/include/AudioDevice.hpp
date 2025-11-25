@@ -11,6 +11,43 @@
 //various helper functions for loading the program
 #include "audio_device.pio.h"
 
+struct AudioBuffer
+{
+    uint32_t *buffer;
+    int     buffsize;
+    uint64_t     SPS;
+    int       maxamp;
+
+    enum class Mode
+    {
+        MONO,
+        LEFT,
+        RIGHT
+    };
+
+    void write16bit(int i, uint16_t value, Mode mode)
+    {
+        if (mode == Mode::LEFT)
+        {
+            buffer[2 * i] = value << 16;
+        }
+        else if (mode == Mode::RIGHT)
+        {
+            buffer[2 * i + 1] = value << 16;
+        }
+        else
+        {
+            buffer[2 * i] = value << 16;
+            buffer[2 * i + 1] = value << 16;
+        }
+    }
+};
+
+struct AudioSource
+{
+    virtual void audioCallback(AudioBuffer buffer) = 0;
+};
+
 class AudioDevice;
 
 class IRQHandler
@@ -118,6 +155,8 @@ private:
     const uint64_t SPS = 45045;
     const int maxamp = 32767 / 2.5;
 
+    AudioSource * source;
+    bool useCallback = false;
     //------------INTERRUPT HANDLER---------
     IRQHandler * IRQ_handler_ptr;
 
@@ -179,6 +218,8 @@ public: //public methods
 
     //factory functions
     static AudioDevice createAudioDevice(uint dataPin, uint lckPin, DeviceMode mode, uint channels);
+
+    void setSource(AudioSource *source_);
 
     //public init, returns true uppon successful initialization
     bool initialize();
@@ -341,6 +382,12 @@ inline AudioDevice AudioDevice::createAudioDevice(uint dataPin, uint lckPin, Dev
     return AudioDevice();
 }
 
+inline void AudioDevice::setSource(AudioSource *source_)
+{
+    source = source_;
+    useCallback = true;
+}
+
 inline bool AudioDevice::initialize()
 {
     if(!pio_claim_free_sm_and_add_program(
@@ -412,9 +459,14 @@ inline bool AudioDevice::update() //!!!!!!!!!!!!CLEAN UP BUFFER SWAPPING AND MAK
             buffer_start_pointer = buffer_ptrs.C;
         }
         buffer_update_flag = false;
-        
+
+        if (useCallback)
+        {
+            source->audioCallback(AudioBuffer{buffer_ptrs.B, BUFFSIZE/2, SPS, maxamp});
+        }
+
         return true;
-    }
+    }    
     return false;
 }
 
