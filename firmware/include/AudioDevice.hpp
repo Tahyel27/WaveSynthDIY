@@ -144,7 +144,6 @@ private:
     };
     BufferPointers buffer_ptrs;
     //!!!!!!!!!!VARIABLE BUFFER SIZE
-    bool double_buffer_mode = true;
     Buffer buffer;
     uint32_t *buffer_start_pointer; //we will provide this to the DMA
 
@@ -202,9 +201,6 @@ private:
     inline void arm_dma_channels_chained_irq();
     void init_buffers();
 
-    //audio generation
-    void generate_buffer();
-
     //utility
 
     inline uint32_t int16_to_uint32(int16_t val){
@@ -213,7 +209,7 @@ private:
 
 public: //public methods
     AudioDevice();
-    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr, bool double_buffer);
+    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr);
     ~AudioDevice();
 
     //factory functions
@@ -247,8 +243,6 @@ void IRQHandler::IRQ_handler_local()
         }
     }
 }
-
-int16_t sample_callback(const AudioDevice::ChannelInfo &info);
 
 inline void AudioDevice::audio_device_program_init()
 {
@@ -329,45 +323,18 @@ inline void AudioDevice::init_buffers()
     
 }
 
-inline void AudioDevice::generate_buffer()
-{
-    if (mode == DeviceMode::MONO)
-    {
-        for (size_t i = 0; i < BUFFSIZE ; i += 2)
-        {
-            int16_t val = sample_callback(ChannelInfo{0,ChannelMode::MONO,chunkcount+1,i,SPS});
-            buffer_start_pointer[i] = int16_to_uint32(val);
-            buffer_start_pointer[i + 1] = int16_to_uint32(val);
-        }
-    }
-    else
-    {
-        for (size_t i = 0; i < BUFFSIZE ; i += 2)
-        {
-            int16_t valL = sample_callback(ChannelInfo{0, ChannelMode::LEFT, chunkcount + 1, i,SPS});
-            int16_t valR = sample_callback(ChannelInfo{1, ChannelMode::RIGHT, chunkcount + 1, i,SPS});
-            buffer_start_pointer[i] = int16_to_uint32(valL);
-            buffer_start_pointer[i + 1] = int16_to_uint32(valR);
-        }   
-    }
-    chunkcount = chunkcount + 1;
-    
-}
-
 AudioDevice::AudioDevice()
 {
 
 }
 
-inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr, bool double_buffer)
+inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr)
 {
     pins.data       =   dataPin;
     pins.lck        =    lckPin;
     mode            =     mode_;
     channel_num     =  channels;
     IRQ_handler_ptr = irq_h_ptr;
-
-    double_buffer_mode = double_buffer;
     
     IRQ_handler_ptr->registerDevice(this, &AudioDevice::confirm_interrupt);
 }
@@ -405,14 +372,7 @@ inline bool AudioDevice::initialize()
     init_buffers();
 
     //the DMA will start reading from buffer A, so we prepare buffer B
-    if (double_buffer_mode)
-    {
-        buffer_start_pointer = buffer.B;
-    }
-    else
-    {
-        buffer_start_pointer = buffer.C;
-    }
+    buffer_start_pointer = buffer.C;
 
     dma_channel_buffer  = dma_claim_unused_channel(false);
     dma_channel_control = dma_claim_unused_channel(false);
@@ -435,29 +395,14 @@ inline bool AudioDevice::update() //!!!!!!!!!!!!CLEAN UP BUFFER SWAPPING AND MAK
 {
     if (buffer_update_flag)
     {
-        if (double_buffer_mode)
-        {
-            if (buffer_start_pointer == buffer.B)
-            {
-                buffer_start_pointer = buffer.A;
-            }
-            else if (buffer_start_pointer == buffer.A)
-            {
-                buffer_start_pointer = buffer.B;
-            }
+        // Since we start with buffer A loaded into the dma we should load in buffer C as second and D as third, so C is always the next buffer
+        uint32_t *tmp_ptr = buffer_ptrs.C;
+        buffer_ptrs.C = buffer_ptrs.B;
+        buffer_ptrs.B = buffer_ptrs.A;
+        buffer_ptrs.A = tmp_ptr;
 
-            generate_buffer();
-        }
-        else
-        {
-            //Since we start with buffer A loaded into the dma we should load in buffer C as second and D as third, so C is always the next buffer
-            uint32_t * tmp_ptr = buffer_ptrs.C;
-            buffer_ptrs.C = buffer_ptrs.B;
-            buffer_ptrs.B = buffer_ptrs.A;
-            buffer_ptrs.A = tmp_ptr;
+        buffer_start_pointer = buffer_ptrs.C;
 
-            buffer_start_pointer = buffer_ptrs.C;
-        }
         buffer_update_flag = false;
 
         if (useCallback)
