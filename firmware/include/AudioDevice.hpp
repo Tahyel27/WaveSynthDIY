@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <array>
+#include <functional>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
@@ -11,7 +12,7 @@
 #include "audio_device.pio.h"
 
 class AudioDevice;
-//!!!!!!!!!!!MAKE MORE GENERAL
+
 class IRQHandler
 {
 private:
@@ -23,7 +24,7 @@ private:
         n_devices = 0;
     }
 
-    std::array<AudioDevice *,8> devices;
+    std::array<std::function<bool(void)>, 16> callbacks;
 
     int n_devices;
 
@@ -48,11 +49,12 @@ public:
         return instance;
     }
 
-    void registerDevice(AudioDevice * device)
+    template<typename T>
+    void registerDevice(T *obj, bool (T::*func)(void))
     {
         if (n_devices < 8)
         {
-            devices[n_devices] = device;
+            callbacks[n_devices] = std::bind(func, obj);
             n_devices++;
         }
     }
@@ -198,7 +200,7 @@ void IRQHandler::IRQ_handler_local()
 {
     for (size_t i = 0; i < n_devices; i++)
     {
-        if (devices[i]->confirm_interrupt())
+        if (callbacks[i]())
         {
             break;
         }
@@ -326,7 +328,7 @@ inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uin
 
     double_buffer_mode = double_buffer;
     
-    IRQ_handler_ptr->registerDevice(this);
+    IRQ_handler_ptr->registerDevice(this, &AudioDevice::confirm_interrupt);
 }
 
 AudioDevice::~AudioDevice()
