@@ -7,7 +7,7 @@ struct sineSynthT
 {
     uint64_t samplecounter;
 
-    uint16_t operator()(double f, int amp, uint64_t SPS)
+    int16_t operator()(double f, int amp, uint64_t SPS)
     {
         double t = double(samplecounter) / double(SPS);
         samplecounter += 1 * f;
@@ -16,7 +16,7 @@ struct sineSynthT
             samplecounter = samplecounter - SPS;
         }
 
-        return amp * sin(2 * t * M_PI);
+        return amp * sin(2* t * M_PI);
     }
 };
 
