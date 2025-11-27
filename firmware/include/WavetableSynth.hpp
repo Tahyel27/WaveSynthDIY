@@ -1,7 +1,11 @@
 #pragma once 
 
 #include <cmath>
+#include <array>
 #include "AudioInterface.hpp"
+
+//header file that contains static const arrays of wavetables
+#include "wave_tables.hpp"
 
 struct sineSynthT
 {
@@ -23,11 +27,36 @@ struct sineSynthT
 class WavetableSynth : public AudioSource
 {
 private:
+    using float_t = float;
+
+    float_t s_counter;
+    std::array<float_t, 4> s_counters;
+    int voices;
+
+    float_t detune;
+
+    float_t morph_counter;
+
+    float_t morphdir;
+
+    float_t freq;
+
+    float_t s_inc;
+
     sineSynthT sine;
+    
+    int16_t sampleLinear(float_t x);
+
+    int16_t sampleLinearSecond(float_t x);
+
+    int16_t *wt;
+
 public:
 
-    void audioCallback(AudioBuffer buffer) override;
+    virtual void audioCallback(AudioBuffer buffer) override;
 
     WavetableSynth(/* args */);
     ~WavetableSynth();
+
+    void setFreq(float f);
 };
