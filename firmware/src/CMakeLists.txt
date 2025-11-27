@@ -1,5 +1,7 @@
 add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp)
 
+add_library(WavetableSynth WavetableSynth.cpp)
+
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/audio_device.pio)
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/button_array.pio)
 
@@ -16,6 +18,7 @@ target_link_libraries(${NAME}
         hardware_pio
         hardware_dma
         hardware_adc
+        WavetableSynth
 )
 
 set_target_properties(${NAME} PROPERTIES
@@ -27,5 +30,7 @@ target_include_directories(${NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/../include
 )
+
+target_include_directories(WavetableSynth PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../include)
 
 pico_add_extra_outputs(${NAME})
