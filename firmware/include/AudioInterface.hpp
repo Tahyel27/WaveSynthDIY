@@ -16,7 +16,7 @@ struct AudioBuffer
         RIGHT
     };
 
-    void write16bit(int i, uint16_t value, Mode mode)
+    void write16bit(int i, int16_t value, Mode mode)
     {
         if (mode == Mode::LEFT)
         {
