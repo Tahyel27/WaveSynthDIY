@@ -49,12 +49,47 @@ function rtoint(range)
 	return Int.(floor.(collect(range)))
 end
 
+function ftg(p,w)
+    x = range(1,1024,1024)
+    return exp.(-(((x.-p)./w).^2))
+end
 # ╔═╡ 3d1b4c08-b7be-434e-ad61-9ff5dff5bd22
 
+function gau(p,w)
+    x = range(0,10,1024)
+    return exp.(-(((x .- p) ./ w) .^ 2))
+end
 
 # ╔═╡ 7d404746-c7cc-4245-ad02-bc6ee48afda9
 Plots.plot(range(0,1,1024),maxint16*sawtooth(1024))
 
+function getx(bsize)
+    return collect(range(0,1,1024))
+end
+
+function fmsine(a, b, k1, k2)
+    p = 2*pi
+    x = getx(1024)
+    M_2 = sin.(k2*p*x)
+    M_1 = sin.(k1*p*x .+ b*M_2)
+    return sin.(p*x + a*M_1)
+end
+
+function  wp5(table)
+    return table.^5
+end
+
+function T_2(x)
+    return 2*x.^2 .- 1
+end
+
+function T_3(x)
+    return 4*x.^3 .- 3*x
+end
+
+function T_4(x)
+    return 8*x.^4 .- 8*x.^2 .+ 1
+end
 
 # ╔═╡ 12bf0cc4-92c8-489f-85c8-1f32254e3999
 function writeTable(table)
