@@ -29,7 +29,6 @@ class WavetableSynth : public AudioSource
 private:
     using float_t = float;
 
-    float_t s_counter;
     std::array<float_t, 4> s_counters;
     int voices;
 

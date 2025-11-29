@@ -26,6 +26,12 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
     //also acts as correction for detune
     float_t m_inc = static_cast<float_t>( tablesize )/ static_cast<float_t>(buffer.SPS);
 
+    auto voice_array = std::array<int16_t, 4>{0,0,0,0};
+    for (int i = 0; i < voices; i++)
+    {
+        voice_array[i] = 1;
+    }
+    
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
         morph_counter += morphdir * m_inc * 2;
@@ -49,32 +55,33 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
             
         }
 
-        auto cnt = s_counters[0];
+        auto cnt0 = s_counters[0];
+        auto cnt1 = s_counters[1];
+        auto cnt2 = s_counters[2];
 
         if (use_fm)
         {
-            cnt = fmshiftCounter(0, tablesize);
+            cnt0 = fmshiftCounter(0, tablesize);
+            cnt1 = fmshiftCounter(1, tablesize);
+            cnt2 = fmshiftCounter(2, tablesize);
         }
         
-        
-        s_counter += s_inc;
-        if (s_counter > tablesize)
-        {
-            s_counter -= tablesize;
-        }
         float_t amp = 1-  morph_counter / buffer.buffsize;
-        buffer.write16bit(i, sampleTableLinear(table, cnt) / 3, AudioBuffer::Mode::MONO);
+        int16_t sample = voice_array[0] * sampleTableLinear(table, s_counters[0]) / (voices + 1);
+        sample += voice_array[1] * sampleTableLinear(table, s_counters[1]) / (voices + 1);
+        sample += voice_array[2] * sampleTableLinear(table, s_counters[2]) / (voices + 1);
+        
+        buffer.write16bit(i, sample, AudioBuffer::Mode::MONO);
     }
 }
 
 WavetableSynth::WavetableSynth()
 {
-    s_counter = 0;
     morph_counter = 0;
     morphdir = 1;
     freq = 440;
     detune = 5;
-    voices = 2;
+    voices = 3;
     wt_index = 0;
     k1 = 1;
     a = 0.2;
