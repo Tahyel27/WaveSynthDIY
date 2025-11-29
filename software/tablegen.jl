@@ -201,3 +201,8 @@ end
 function ip(arr1, arr2, fac)
     return ((1-fac)*arr1) .+ (fac*arr2)
 end
+
+function fttablewrite(t)
+    tw = Int.(maxint16*t)
+    writeTablet(tw)
+end

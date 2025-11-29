@@ -4,3 +4,5 @@
 4. how does the fft x coordinate map onto harmonics when the table is played back at a given frequency?
 5. implement reading from bandlimited multiwavetables
 6. implement a wavetable index, with pointers to table start maybe?
+
+creating a wavetable set (like four or five) that are based on changing the fm modulation could be interestin
