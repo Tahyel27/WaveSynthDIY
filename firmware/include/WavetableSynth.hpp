@@ -81,7 +81,7 @@ inline float_t WavetableSynth::fmshiftCounter(int counter, uint32_t tablesize)
     {
         shifted -= tablesize;
     }
-    else if(shifted < tablesize)
+    else if(shifted < 0)
     {
         shifted += tablesize;
     }
