@@ -5,7 +5,7 @@
 #include "AudioInterface.hpp"
 
 //header file that contains static const arrays of wavetables
-#include "wave_tables.hpp"
+#include "wavetable_data.hpp"
 
 struct sineSynthT
 {
@@ -44,13 +44,15 @@ private:
     float_t s_inc;
 
     sineSynthT sine;
-    
-    int16_t sampleLinear(float_t x);
 
-    int16_t sampleLinearSecond(float_t x);
+    int16_t tab;
 
-    int16_t *wt;
+    inline int16_t sampleTableLinear(const int16_t *t, float_t x);
 
+    int wt_index;
+    int band_index;
+
+    int getBand(float f);
 public:
 
     virtual void audioCallback(AudioBuffer buffer) override;
@@ -60,3 +62,10 @@ public:
 
     void setFreq(float f);
 };
+
+inline int16_t WavetableSynth::sampleTableLinear(const int16_t *t, float_t x)
+{
+    int i = static_cast<int>(floor(x));
+    float_t f = x - i;
+    return (1 - f) * t[i] + f * t[i + 1];
+}

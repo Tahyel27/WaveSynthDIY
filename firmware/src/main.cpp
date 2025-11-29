@@ -4,6 +4,7 @@
 #include "hardware/pio.h"
 #include "AudioDevice.hpp"
 #include "AnalogArray.hpp"
+#include "WavetableSynth.hpp"
 
 struct sineSynth
 {
@@ -45,7 +46,9 @@ int main()
 
     auto source = sineSource();
 
-    device.setSource(&source);
+    auto wt = WavetableSynth();
+
+    device.setSource(&wt);
 
     auto synth = sineSynth();
 
