@@ -40,7 +40,7 @@ extern const WaveTable wt_library[];
 """
 
 CPP_HEADER_STRING = """
-#include "wave_tables.hpp" 
+#include "wavetable_data.hpp" 
 
 """
 TERM_STRING = "};\n"
