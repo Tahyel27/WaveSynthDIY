@@ -2,6 +2,59 @@ using Plots
 using PortAudio, SampledSignals
 using FFTW
 
+HPP_HEADER_STRING = """
+#pragma once
+
+#include <cstdint>
+
+struct WaveTableBand
+{
+    const int16_t * data;
+    uint32_t length;
+    const float f;
+
+    //array acces operator to get the data
+    inline int16_t operator[](uint32_t index) const 
+    {
+        return data[index]; 
+    }
+    
+};
+
+struct WaveTable
+{
+    const WaveTableBand *b_ptr;
+    uint32_t num;
+
+    //returns a struct containing {data: pointer to start of wt data for given band, length: length of this data, f: recommended frequency to switch to this band}
+    inline WaveTableBand operator[](uint32_t index) const 
+    {
+        return b_ptr[index];
+    }
+    
+};
+
+extern const WaveTable wt_library[];
+
+
+"""
+
+CPP_HEADER_STRING = """
+#include "wave_tables.hpp" 
+
+"""
+TERM_STRING = "};\n"
+TABLE_TYPE_STRING = "const int16_t"
+TABLE_BAND_NAME = "table_band"
+TABLE_BAND_TYPE = "const WaveTableBand"
+FULL_TABLE_NAME = "wave_table"
+FULL_TABLE_TYPE = "const WaveTable"
+WTS_WRITTEN = 0
+FULL_WTS_WRITTEN = 0
+
+HPP = "wavetable_data.hpp"
+CPP = "wavetable_data.cpp"
+
 maxint16 = 32767 
 SPS = 45045
 bsize = 1024
@@ -202,7 +255,106 @@ function ip(arr1, arr2, fac)
     return ((1-fac)*arr1) .+ (fac*arr2)
 end
 
+function blimit(t, n)
+    return runifft(coff(runfft(t),n))
+end
+
 function fttablewrite(t)
-    tw = Int.(maxint16*t)
-    writeTablet(tw)
+    tw = Int.(floor.(maxint16*t))
+    writeTable(tw)
+end
+
+function writeHeaders()
+    global WTS_WRITTEN
+    global FULL_WTS_WRITTEN
+    WTS_WRITTEN = 0
+    FULL_WTS_WRITTEN = 0
+    iohpp = open(HPP,"w")
+    iocpp = open(CPP,"w")
+
+    print(iohpp, HPP_HEADER_STRING)
+    print(iocpp, CPP_HEADER_STRING)
+
+    close(iohpp)
+    close(iocpp)
+end
+
+function writeTableData(io, table, size)
+    lbreack = 0
+    for i in 1:size 
+        print(io,table[i])
+        print(io,",")
+        if lbreack >= 20
+            print(io,"\n")
+            lbreack = 0
+        end
+        lbreack += 1
+    end
+end
+
+function writeWT(table)
+    #conversion to int happens in this function
+    global WTS_WRITTEN
+    global FULL_WTS_WRITTEN
+    iohpp = open(HPP, "a")
+    iocpp = open(CPP, "a")
+    
+    #write with band limit 90,45,22,11,5
+    #frequencies 0, C4, C5, C6, C7
+    #in hz 0, 261.63, 523.25, 1046.5, 2093.005
+    farr = [0, 261.63, 523.25, 1046.5, 2093.002]
+    barr = [90, 45, 22, 11, 5]
+    for i in 1:5
+        bt = blimit(table, barr[i])
+        #write into hpp
+        #something like extern tabletype tablename[1024]
+        index = string(Int(WTS_WRITTEN + i))
+        print(iohpp, "extern $(TABLE_TYPE_STRING) $(TABLE_BAND_NAME)$(index)[1024];\n")
+        #write into cpp file 
+        print(iocpp, "$(TABLE_TYPE_STRING) $(TABLE_BAND_NAME)$(index)[1024] = {\n")
+        writeTableData(iocpp, Int.(floor.(maxint16*bt)), 1024)
+        print(iocpp, TERM_STRING)
+        print(iocpp, "\n")
+    end
+
+    print(iohpp, "\n")
+    print(iohpp, "extern $(TABLE_BAND_TYPE) $(FULL_TABLE_NAME)$(FULL_WTS_WRITTEN)[];\n")
+    print(iohpp, "\n")
+
+    print(iocpp, "\n")
+    print(iocpp, "$(TABLE_BAND_TYPE) $(FULL_TABLE_NAME)$(FULL_WTS_WRITTEN)[] = {\n")
+    for i in 1:5
+        index = string(Int(WTS_WRITTEN + i))
+        print(iocpp, "  {$(TABLE_BAND_NAME)$(index), ")
+        print(iocpp, 1024)
+        print(iocpp, ", ")
+        print(iocpp, farr[i])
+        print(iocpp, "},\n")
+    end
+    print(iocpp, TERM_STRING)
+    print(iocpp, "\n\n")
+
+
+    WTS_WRITTEN += 5
+    FULL_WTS_WRITTEN += 1
+
+    close(iohpp)
+    close(iocpp)
+end
+
+function writeLibrary()
+    iohpp = open(HPP, "a")
+    iocpp = open(CPP, "a")
+
+    print(iocpp, "$(FULL_TABLE_TYPE) wt_library[] = {\n")
+    for i in 0:FULL_WTS_WRITTEN-1
+        index = string(Int(i))
+        print(iocpp, "  {$(FULL_TABLE_NAME)$(index), ")
+        print(iocpp, 5)
+        print(iocpp, "},\n")
+    end
+    print(iocpp, TERM_STRING)
+
+    close(iohpp)
+    close(iocpp)
 end
