@@ -52,8 +52,8 @@ FULL_TABLE_TYPE = "const WaveTable"
 WTS_WRITTEN = 0
 FULL_WTS_WRITTEN = 0
 
-HPP = "wavetable_data.hpp"
-CPP = "wavetable_data.cpp"
+HPP = "../firmware/include/wavetable_data.hpp"
+CPP = "../firmware/src/wavetable_data.cpp"
 
 maxint16 = 32767 
 SPS = 45045
@@ -145,7 +145,7 @@ function T_4(x)
 end
 
 # ╔═╡ 12bf0cc4-92c8-489f-85c8-1f32254e3999
-function writeTable(table)
+function writeTableOld(table)
 	io = open("table.dat","w")
 	for i in 1:length(table)
 		print(io, table[i])
@@ -292,7 +292,7 @@ function writeTableData(io, table, size)
     end
 end
 
-function writeWT(table)
+function writeTable(table)
     #conversion to int happens in this function
     global WTS_WRITTEN
     global FULL_WTS_WRITTEN
