@@ -28,7 +28,7 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
         morph_counter += morphdir * m_inc * 2;
-        if (morph_counter > buffer.buffsize)
+        if (morph_counter > 1024)
         {
             //morph_counter -= buffer.buffsize;
             morphdir = -1;
@@ -38,24 +38,31 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
             morphdir = 1;
         }
         
-        for (size_t i = 0; i < voices; i++)
+        for (size_t j = 0; j < voices; j++)
         {
-            s_counters[i] += s_inc + i * detune * m_inc;
-            if (s_counters[i] > buffer.buffsize)
+            s_counters[j] += s_inc + j * detune * m_inc;
+            if (s_counters[j] > 1024)
             {
-                s_counters[i] -= buffer.buffsize;
+                s_counters[j] -= 1024;
             }
             
+        }
+
+        auto cnt = s_counters[0];
+
+        if (use_fm)
+        {
+            cnt = fmshiftCounter(0);
         }
         
         
         s_counter += s_inc;
-        if (s_counter > buffer.buffsize)
+        if (s_counter > 1024)
         {
-            s_counter -= buffer.buffsize;
+            s_counter -= 1024;
         }
         float_t amp = 1-  morph_counter / buffer.buffsize;
-        buffer.write16bit(i, sampleTableLinear(table, s_counters[0]) / 2, AudioBuffer::Mode::MONO);
+        buffer.write16bit(i, sampleTableLinear(table, cnt) / 3, AudioBuffer::Mode::MONO);
     }
 }
 
@@ -64,10 +71,13 @@ WavetableSynth::WavetableSynth()
     s_counter = 0;
     morph_counter = 0;
     morphdir = 1;
-    freq = 120;
+    freq = 440;
     detune = 5;
     voices = 2;
     wt_index = 0;
+    k1 = 1;
+    a = 0.2;
+    use_fm = false;
     band_index = getBand(static_cast<float>(freq));
 }
 
