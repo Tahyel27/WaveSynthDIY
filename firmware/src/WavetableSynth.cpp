@@ -79,13 +79,13 @@ WavetableSynth::WavetableSynth()
 {
     morph_counter = 0;
     morphdir = 1;
-    freq = 120;
+    freq = 440;
     detune = 1;
     voices = 1;
     wt_index = 0;
     k1 = 1;
-    a = 0.6;
-    use_fm = true;
+    a = 0.5;
+    use_fm = false;
     band_index = getBand(static_cast<float>(freq));
 }
 
@@ -96,5 +96,11 @@ WavetableSynth::~WavetableSynth()
 void WavetableSynth::setFreq(float f)
 {
     freq = static_cast<float_t>(f);
+    band_index = getBand(static_cast<float>(freq));
+}
+
+void WavetableSynth::setWT(int wti)
+{
+    wt_index = wti;
     band_index = getBand(static_cast<float>(freq));
 }

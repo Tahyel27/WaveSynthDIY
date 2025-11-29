@@ -67,6 +67,17 @@ public:
     ~WavetableSynth();
 
     void setFreq(float f);
+
+    void setVoices(int i){voices = i;};
+
+    void setFMmod(float fmmod){a = fmmod;};
+
+    void setFM(bool FMflag){use_fm = FMflag;};
+
+    void setFMk(int k) {k1 = k;};
+
+    void setWT(int wti);
+
 };
 
 inline float_t WavetableSynth::getSine(float_t x, uint32_t tablesize)
