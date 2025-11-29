@@ -300,9 +300,9 @@ function writeTable(table)
     iocpp = open(CPP, "a")
     
     #write with band limit 90,45,22,11,5
-    #frequencies 0, C4, C5, C6, C7
+    #frequencies - upper limit of playing band C4, C5, C6, C7, C8
     #in hz 0, 261.63, 523.25, 1046.5, 2093.005
-    farr = [0, 261.63, 523.25, 1046.5, 2093.002]
+    farr = [261.63, 523.25, 1046.5, 2093.002, 4186.01]
     barr = [90, 45, 22, 11, 5]
     for i in 1:5
         bt = blimit(table, barr[i])
