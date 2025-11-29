@@ -50,9 +50,9 @@ private:
     float a = 1;
     int k1 = 1;
 
-    inline float_t getSine(float_t x); //returns a sine in the range of -1 1
+    inline float_t getSine(float_t x, uint32_t tablesize); //returns a sine in the range of -1 1
 
-    inline float_t fmshiftCounter(int counter);
+    inline float_t fmshiftCounter(int counter, uint32_t tablesize);
 
     inline int16_t sampleTableLinear(const int16_t *t, float_t x);
 
@@ -70,21 +70,21 @@ public:
     void setFreq(float f);
 };
 
-inline float_t WavetableSynth::getSine(float_t x)
+inline float_t WavetableSynth::getSine(float_t x, uint32_t tablesize)
 {
-    return sinf(x*M_PI*2 / 1024);
+    return sinf(x*M_PI*2 / tablesize);
 }
 
-inline float_t WavetableSynth::fmshiftCounter(int counter)
+inline float_t WavetableSynth::fmshiftCounter(int counter, uint32_t tablesize)
 {
-    float_t shifted = s_counters[counter] + a*1024*getSine(k1*s_counters[counter]);
-    if (shifted > 1024)
+    float_t shifted = s_counters[counter] + a*1024*getSine(k1*s_counters[counter], tablesize);
+    if (shifted > tablesize)
     {
-        shifted -= 1024;
+        shifted -= tablesize;
     }
-    else if(shifted < 0)
+    else if(shifted < tablesize)
     {
-        shifted += 1024;
+        shifted += tablesize;
     }
 
     return shifted;

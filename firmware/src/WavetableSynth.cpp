@@ -19,16 +19,17 @@ int WavetableSynth::getBand(float f)
 void WavetableSynth::audioCallback(AudioBuffer buffer)
 {
     auto table = wt_library[wt_index][band_index].data;
+    auto tablesize = wt_library[wt_index][band_index].length;
 
-    s_inc = (freq * static_cast<float_t>( buffer.buffsize ))/ static_cast<float_t>(buffer.SPS);
+    s_inc = (freq * static_cast<float_t>( tablesize ))/ static_cast<float_t>(buffer.SPS);
 
     //also acts as correction for detune
-    float_t m_inc = static_cast<float_t>( buffer.buffsize )/ static_cast<float_t>(buffer.SPS);
+    float_t m_inc = static_cast<float_t>( tablesize )/ static_cast<float_t>(buffer.SPS);
 
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
         morph_counter += morphdir * m_inc * 2;
-        if (morph_counter > 1024)
+        if (morph_counter > tablesize)
         {
             //morph_counter -= buffer.buffsize;
             morphdir = -1;
@@ -41,9 +42,9 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
         for (size_t j = 0; j < voices; j++)
         {
             s_counters[j] += s_inc + j * detune * m_inc;
-            if (s_counters[j] > 1024)
+            if (s_counters[j] > tablesize)
             {
-                s_counters[j] -= 1024;
+                s_counters[j] -= tablesize;
             }
             
         }
@@ -52,14 +53,14 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
 
         if (use_fm)
         {
-            cnt = fmshiftCounter(0);
+            cnt = fmshiftCounter(0, tablesize);
         }
         
         
         s_counter += s_inc;
-        if (s_counter > 1024)
+        if (s_counter > tablesize)
         {
-            s_counter -= 1024;
+            s_counter -= tablesize;
         }
         float_t amp = 1-  morph_counter / buffer.buffsize;
         buffer.write16bit(i, sampleTableLinear(table, cnt) / 3, AudioBuffer::Mode::MONO);
