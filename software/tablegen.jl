@@ -309,10 +309,12 @@ function writeTable(table)
         #write into hpp
         #something like extern tabletype tablename[1024]
         index = string(Int(WTS_WRITTEN + i))
-        print(iohpp, "extern $(TABLE_TYPE_STRING) $(TABLE_BAND_NAME)$(index)[1024];\n")
+        print(iohpp, "extern $(TABLE_TYPE_STRING) $(TABLE_BAND_NAME)$(index)[1025];\n")
         #write into cpp file 
-        print(iocpp, "$(TABLE_TYPE_STRING) $(TABLE_BAND_NAME)$(index)[1024] = {\n")
+        print(iocpp, "$(TABLE_TYPE_STRING) $(TABLE_BAND_NAME)$(index)[1025] = {\n")
         writeTableData(iocpp, Int.(floor.(maxint16*bt)), 1024)
+        #writes the first value once more, to prevent jumping during interpolation
+        print(iocpp, Int.(floor.(maxint16 * bt[1])))
         print(iocpp, TERM_STRING)
         print(iocpp, "\n")
     end
