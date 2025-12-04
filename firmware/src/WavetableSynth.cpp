@@ -71,7 +71,7 @@ void WavetableSynth::audioCallback(AudioBuffer buffer)
         sample += voice_array[1] * sampleTableLinear(table, cnt1) / (voices + 1);
         sample += voice_array[2] * sampleTableLinear(table, cnt2) / (voices + 1);
         
-        buffer.write16bit(i, sample, AudioBuffer::Mode::MONO);
+        buffer.write16bit(i, sample*2, AudioBuffer::Mode::MONO);
     }
 }
 

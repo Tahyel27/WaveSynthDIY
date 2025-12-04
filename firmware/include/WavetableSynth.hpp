@@ -70,6 +70,8 @@ public:
 
     void setVoices(int i){voices = i;};
 
+    void setDetune(float_t det){detune = det;};
+
     void setFMmod(float fmmod){a = fmmod;};
 
     void setFM(bool FMflag){use_fm = FMflag;};
