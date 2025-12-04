@@ -1,6 +1,8 @@
 using Plots
 using PortAudio, SampledSignals
 using FFTW
+using WAV
+using Statistics
 
 HPP_HEADER_STRING = """
 #pragma once
@@ -58,6 +60,80 @@ CPP = "../firmware/src/wavetable_data.cpp"
 maxint16 = 32767 
 SPS = 45045
 bsize = 1024
+
+function readwav(filename::String)
+    # Read the wav file. 
+    # y is the audio data (samples x channels), fs is the sample rate.
+    y, fs = wavread(filename)
+
+    # Check if audio is multi-channel (e.g., stereo)
+    # The prompt asks for a "vector", implying a 1D array.
+    if size(y, 2) > 1
+        # Mix down to mono by averaging the channels along the second dimension
+        y_mono = vec(mean(y, dims=2))
+    else
+        # Just convert the Nx1 matrix to a standard vector
+        y_mono = vec(y)
+    end
+
+    # Find the maximum absolute amplitude
+    max_amp = maximum(abs.(y_mono))
+
+    # Normalize
+    # We check if max_amp is > 0 to avoid division by zero on silent files
+    if max_amp > 0
+        y_normalized = y_mono ./ max_amp
+    else
+        y_normalized = y_mono
+    end
+
+    return y_normalized
+end
+
+function playwav(audio::Vector{Float64}, sample_rate::Real=44100)
+    # Open a stream with 0 input channels and 1 output channel
+    PortAudioStream(0, 1; samplerate=Float64(sample_rate)) do stream
+        write(stream, audio)
+    end
+end
+
+function sto1024(input_vector::Vector{Float64})
+    target_len = 1024
+    original_len = length(input_vector)
+
+    # Handle edge case where input is empty or too small
+    if original_len == 0
+        return zeros(Float64, target_len)
+    end
+    if original_len == 1
+        return fill(input_vector[1], target_len)
+    end
+
+    output_vector = Vector{Float64}(undef, target_len)
+
+    # Calculate the scaling factor to map [1, 1024] to [1, original_len]
+    scale = (original_len - 1) / (target_len - 1)
+
+    for i in 1:target_len
+        # Calculate the position in the original vector (1-based index)
+        pos = 1 + (i - 1) * scale
+
+        # Get the lower integer index and the fractional part
+        idx = floor(Int, pos)
+        frac = pos - idx
+
+        if idx >= original_len
+            output_vector[i] = input_vector[end]
+        else
+            # Linear Interpolation: y = p0 + (p1 - p0) * frac
+            p0 = input_vector[idx]
+            p1 = input_vector[idx+1]
+            output_vector[i] = p0 + (p1 - p0) * frac
+        end
+    end
+
+    return output_vector
+end
 
 function sine()
 	x = range(0,1,bsize)
