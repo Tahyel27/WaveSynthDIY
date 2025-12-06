@@ -58,6 +58,23 @@ void Synth::SynthEngine::initSinModAmpTest()
     nodeOrder[2].outputBuffer = -1;
 }
 
+void Synth::SynthEngine::initSinFMModTest()
+{
+    activeVoices.reset();
+    activeVoices[0] = true;
+    nodeCount = 3;
+
+    voiceData[0].SineOscArr[0] = SineOscData{0, {-1, 200}, {-1, 0}, {-1, 0}};
+    nodeOrder[0].type = NodeType::SINEOSCILLATOR;
+    nodeOrder[0].dataIndex = 0;
+    nodeOrder[0].outputBuffer = 0;
+
+    voiceData[0].SineOscArr[1] = SineOscData{0, {-1, 100}, {0, 0}, {-1, 0.2}};
+    nodeOrder[1].type = NodeType::SINEOSCILLATOR;
+    nodeOrder[1].dataIndex = 1;
+    nodeOrder[1].outputBuffer = -1;
+}
+
 void SynthEngine::loadData(const Data &data_)
 {
     for (size_t i = 0; i < VOICE_COUNT; i++)

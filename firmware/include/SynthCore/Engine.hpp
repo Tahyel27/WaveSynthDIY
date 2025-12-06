@@ -72,6 +72,8 @@ private:
 
     void initSinModAmpTest();
 
+    void initSinFMModTest();
+
     void loadData(const Data &data_);
 
     void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);
