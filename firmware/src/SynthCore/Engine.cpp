@@ -96,6 +96,40 @@ void Synth::SynthEngine::initWTTest()
     nodeOrder[0].outputBuffer = -1;
 }
 
+void Synth::SynthEngine::initADSRTest()
+{
+    activeVoices.reset();
+    activeVoices[0] = true;
+    nodeCount = 3;
+
+    WTOscData osc;
+    osc.wtIndex = 1;
+    osc.unison = 0;
+    osc.detune = ModInput{-1, 0.3};
+    osc.phaseDistMod = ModInput{-1, 0};
+    osc.phaseDistMod = ModInput{-1, 0};
+    osc.freq = ModInput{-1, 90};
+    osc.morph = ModInput{-1, 0};
+
+    voiceData[0].WTOscArr[0] = osc;
+    nodeOrder[0].type = NodeType::WTOSCILLATOR;
+    nodeOrder[0].dataIndex = 0;
+    nodeOrder[0].outputBuffer = 0;
+
+    auto adsr = ADSRData();
+    adsr.state = ADSRData::State::ATTACK;
+    adsr.sustain = -0.5;
+    voiceData[0].ADSRArr[0] = adsr;
+    nodeOrder[1].type = NodeType::ADSR;
+    nodeOrder[1].dataIndex = 0;
+    nodeOrder[1].outputBuffer = 1;
+
+    voiceData[0].AmplifierArr[0] = AmplifierData{{0, 0.0}, {1, 0.5}};
+    nodeOrder[2].type = NodeType::AMPLIFIER;
+    nodeOrder[2].dataIndex = 0;
+    nodeOrder[2].outputBuffer = -1;
+}
+
 void SynthEngine::loadData(const Data &data_)
 {
     for (size_t i = 0; i < VOICE_COUNT; i++)
@@ -149,6 +183,7 @@ void Synth::SynthEngine::processGraph()
 
 void Synth::SynthEngine::processChunk(int chunk, int voice)
 {
+    bufferPool.wipeBuffers();
     //we iterate over the operations in the queue
     for (size_t i = 0; i < nodeCount; i++)
     {
@@ -182,6 +217,9 @@ void Synth::processNode(NodeType type, int nodeID, Data &data, float_t *outbuffe
         break;
     case NodeType::SINEOSCILLATOR:
         processSineOsc(&data.SineOscArr[nodeID], buffers, outbuffer);
+        break;
+    case NodeType::ADSR:
+        processADSR(&data.ADSRArr[nodeID], outbuffer);
         break;
     default:
         break;

@@ -17,7 +17,8 @@ namespace Synth
         WTOSCILLATOR,
         SINEOSCILLATOR,
         SAWOSCILLATOR,
-        AMPLIFIER
+        AMPLIFIER,
+        ADSR
     };
 
     struct DataHolder
@@ -67,9 +68,33 @@ namespace Synth
         ModInput input;
         ModInput amount;
     };
+
+    struct ADSRData
+    {
+        float_t timer = 0;
+
+        enum class State
+        {
+            IDLE,
+            ATTACK,
+            HOLD,
+            DECAY,
+            SUSTAIN,
+            RELEASE
+        };
+        State state = State::IDLE;
+
+        float_t attack = 0.1;
+        float_t hold = 0.0;
+        float_t decay = 0.2;
+        float_t sustain = 0.8;
+        float_t release = 0.0;
+    };
+    
     
     void processWTOsc(WTOscData * data, BufferPool * pool, float_t * outbuffer);
     void processSineOsc(SineOscData * data, BufferPool *pool, float_t *outbuffer);
     void processSawOsc(SawOscData * data, BufferPool *pool, float_t *outbuffer);
     void processAmplifier(const AmplifierData &data, BufferPool *pool, float_t *outbuffer);
+    void processADSR(ADSRData *data, float_t *outbuffer);
 }

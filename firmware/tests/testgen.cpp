@@ -28,10 +28,42 @@ void printSineWave()
     printBuffer(buffer);
 }
 
+constexpr int NBUFFERS = 100;
+
+void printMockStream(const std::array<uint32_t, 2048 * NBUFFERS> &mock)
+{
+    for (size_t i = 0; i < 1024*NBUFFERS; i++)
+    {
+        auto tmp = mock[i * 2];
+        auto val = static_cast<int16_t>(tmp >> 16);
+        std::cout << std::format("{:10}", val) << std::endl;
+    }
+}
+
+void longtest()
+{
+    Synth::SynthEngine engine;
+    //engine.initWTTest();
+    engine.initADSRTest();
+    std::array<uint32_t, 2048 * NBUFFERS> mock{};
+    for (size_t i = 0; i < NBUFFERS; i++)
+    {
+        AudioBuffer buffer;
+        buffer.buffer = mock.begin() + 2048 * i;
+        buffer.buffsize = 1024;
+        engine.audioCallback(buffer);
+    }
+
+    printMockStream(mock);
+
+}
+
 int main()
 {
-    printSineWave();
+    //printSineWave();
 
+    longtest();
+    
     return 0;
 }
 

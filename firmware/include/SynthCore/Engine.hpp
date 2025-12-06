@@ -37,6 +37,9 @@ struct Data
 
     static constexpr int AmplifierNum = 5;
     std::array<AmplifierData, AmplifierNum> AmplifierArr;
+
+    static constexpr int ADSRNum = 5;
+    std::array<ADSRData, ADSRNum> ADSRArr;
 };
 
 void processNode(NodeType type, int nodeID, Data &data, float_t *outbuffer, BufferPool *buffers);
@@ -75,6 +78,8 @@ private:
     void initSinFMModTest();
 
     void initWTTest();
+
+    void initADSRTest();
 
     void loadData(const Data &data_);
 

@@ -141,3 +141,70 @@ void Synth::processAmplifier(const AmplifierData &data, BufferPool *pool, float_
     }
 
 }
+
+void Synth::processADSR(Synth::ADSRData *data, Synth::float_t *outbuffer)
+{
+    auto state = data->state;
+
+    float dec_floor = std::clamp(data->sustain, 0.f, 1.f);
+    if (state == ADSRData::State::ATTACK)
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            data->timer += dt;
+            outbuffer[i] = std::clamp(data->timer / data->attack, 0.f, 1.f);
+        }
+
+        if (data->timer > data->attack)
+        {
+            data->state = ADSRData::State::HOLD;
+        }
+    }
+    else if (state == ADSRData::State::HOLD)
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            data->timer += dt;
+            outbuffer[i] = 1;
+        }
+
+        if (data->timer > (data->attack + data->hold))
+        {
+            data->state = ADSRData::State::DECAY;
+        }
+    }
+    else if (state == ADSRData::State::DECAY)
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            data->timer += dt;
+            outbuffer[i] = 1 + ((dec_floor - 1.f) / data->decay) * (data->timer - data->attack - data->hold);
+        }
+
+        if (data->timer > (data->attack + data->hold + data->decay))
+        {
+            if (data->sustain > 0)
+            {
+                data->state = ADSRData::State::SUSTAIN;
+            }
+            else
+            {
+                data->state = ADSRData::State::IDLE;
+            }
+        }        
+    }
+    else if (state == ADSRData::State::RELEASE)
+    {
+        if (data->timer >= data->release)
+        {
+            data->state = ADSRData::State::IDLE;
+        }
+        else{
+            for (size_t i = 0; i < CHUNK_SIZE; i++)
+            {
+                data->timer += dt;
+                float_t out = 1 - (1 / data->release) * data->timer;  
+            }
+        }
+    }  
+}
