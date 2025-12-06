@@ -8,11 +8,9 @@ namespace Synth
     constexpr size_t BUFFER_SIZE = 1024;
     constexpr size_t CHUNK_SIZE = 128;
     constexpr size_t CHUNKS_PER_BUFFER = BUFFER_SIZE / CHUNK_SIZE;
-} // namespace Synth
+ // namespace Synth
 
 using float_t = float;
-
-using namespace Synth;
 
 class BufferPool
 {
@@ -76,3 +74,5 @@ public:
 
     virtual void audioCallback(AudioBuffer Buffer) override;
 };
+
+}
