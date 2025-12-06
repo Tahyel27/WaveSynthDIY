@@ -1,8 +1,32 @@
 #include <SynthCore/Components.hpp>
+#include "wavetable_data.hpp"
 #include <cmath>
 
-void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
+inline int getBandIndex(float f, int wt_index)
 {
+    int b_index = 0;
+    bool found = false;
+    auto wavetable = wt_library[wt_index];
+    for (int i = 0; i < wavetable.num; i++)
+    {
+        if (wavetable[i].f > f)
+        {
+            return i;
+        }
+    }
+    return wavetable.num - 1;
+}
+
+inline Synth::float_t sampleTableLinear(const int16_t *t, float_t x)
+{
+    const Synth::float_t mul = 3.05185e-5;
+    int i = static_cast<int>(floor(x));
+    Synth::float_t f = x - i;
+    return static_cast<Synth::float_t>((1 - f) * t[i] + f * t[i + 1]) * mul;
+}
+
+void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
+{    
     std::array<float_t, CHUNK_SIZE> s_detune;
     std::array<float_t, CHUNK_SIZE> s_phaseDistort;
     std::array<float_t, CHUNK_SIZE> s_phaseDistMod;
@@ -15,9 +39,59 @@ void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
     float_t * freq = prepareInBuffer(data->freq.bufID, data->freq.v, pool, s_freq.begin());
     float_t * morph = prepareInBuffer(data->morph.bufID, data->morph.v, pool, s_morph.begin());
 
+    int wt_index = data->wtIndex;
+    int band_index = getBandIndex(freq[0], wt_index);
+
+    auto table = wt_library[wt_index][band_index].data;
+    auto tablesize = wt_library[wt_index][band_index].length;
+
+    const float increment = static_cast<float> (tablesize) / static_cast<float> (SPS);
+
+    int unison = data->unison;
+
+    const std::array<float, 3> unisonFactors = {0, 1, -1};
+    const std::array<float, 3> unisonAmps = {1, 0.4, 0.3};
+
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
-        outbuffer[i] = 0;
+        data->phaseCounterA += increment * freq[i];
+        data->phaseCounterB += increment * (freq[i] + detune[i]);
+        data->phaseCounterC += increment * (freq[i] - detune[i]);
+
+        if (data->phaseCounterA > tablesize)
+        {
+            data->phaseCounterA -= static_cast<float>(tablesize);
+        }
+
+        if (data->phaseCounterB > tablesize)
+        {
+            data->phaseCounterB -= static_cast<float>(tablesize);
+        }
+
+        if (data->phaseCounterC > tablesize)
+        {
+            data->phaseCounterC -= static_cast<float>(tablesize);
+        }
+
+        float phA = data->phaseCounterA + phaseDistMod[i] * phaseDistort[i];
+        float phB = data->phaseCounterB + phaseDistMod[i] * phaseDistort[i];
+        float phC = data->phaseCounterC + phaseDistMod[i] * phaseDistort[i];
+
+        phA = std::clamp(phA, 0.f, static_cast<float>(tablesize));
+        phB = std::clamp(phB, 0.f, static_cast<float>(tablesize));
+        phC = std::clamp(phC, 0.f, static_cast<float>(tablesize));
+
+        outbuffer[i] = unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterA);
+        
+        if (unison == 2)
+        {
+            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterB);
+        }
+        else if(unison == 3)
+        {
+            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterB);
+            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterC);
+        }
     }
     
 }

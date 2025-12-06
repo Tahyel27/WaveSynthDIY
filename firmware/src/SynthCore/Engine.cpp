@@ -75,6 +75,27 @@ void Synth::SynthEngine::initSinFMModTest()
     nodeOrder[1].outputBuffer = -1;
 }
 
+void Synth::SynthEngine::initWTTest()
+{
+    activeVoices.reset();
+    activeVoices[0] = true;
+    nodeCount = 1;
+
+    WTOscData osc;
+    osc.wtIndex = 3;
+    osc.unison = 0;
+    osc.detune = ModInput{-1,0.3};
+    osc.phaseDistMod = ModInput{-1,0};
+    osc.phaseDistMod = ModInput{-1,0};
+    osc.freq = ModInput{-1,90};
+    osc.morph = ModInput{-1,0};
+
+    voiceData[0].WTOscArr[0] = osc;
+    nodeOrder[0].type = NodeType::WTOSCILLATOR;
+    nodeOrder[0].dataIndex = 0;
+    nodeOrder[0].outputBuffer = -1;
+}
+
 void SynthEngine::loadData(const Data &data_)
 {
     for (size_t i = 0; i < VOICE_COUNT; i++)
@@ -154,6 +175,7 @@ void Synth::processNode(NodeType type, int nodeID, Data &data, float_t *outbuffe
     switch (type)
     {
     case NodeType::WTOSCILLATOR:
+        processWTOsc(&data.WTOscArr[nodeID], buffers, outbuffer);
         break;
     case NodeType::AMPLIFIER:
         processAmplifier(data.AmplifierArr[nodeID], buffers, outbuffer);

@@ -17,8 +17,9 @@ void printSineWave()
     Synth::SynthEngine engine;
     //engine.initOneSineTest();
     //engine.initSineAndAmpTest();
-    engine.initSinFMModTest();
+    //engine.initSinFMModTest();
     //engine.initSinModAmpTest();
+    engine.initWTTest();
     std::array<uint32_t, 2048> mock{};
     AudioBuffer buffer;
     buffer.buffer = mock.begin();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <algorithm>
 #include "SynthCore/Common.hpp"
 
 namespace Synth
@@ -27,7 +28,9 @@ namespace Synth
 
     struct WTOscData
     {
-        float_t phaseCounter = 0;
+        float_t phaseCounterA = 0;
+        float_t phaseCounterB = 0;
+        float_t phaseCounterC = 0;
 
         int wtIndex = 0;
         int unison = 1;
