@@ -8,6 +8,7 @@ namespace Synth
     constexpr size_t BUFFER_SIZE = 1024;
     constexpr size_t CHUNK_SIZE = 128;
     constexpr size_t CHUNKS_PER_BUFFER = BUFFER_SIZE / CHUNK_SIZE;
+    constexpr int VOICE_COUNT = 6;
  // namespace Synth
 
 using float_t = float;
@@ -61,6 +62,16 @@ public:
     }
 
     static size_t getSize(){return BUFFER_COUNT;};
+};
+
+struct VoiceBuffers
+{
+    std::array<float_t, BUFFER_SIZE*VOICE_COUNT> data;
+
+    float_t * get(int voice)
+    {
+        return &data[BUFFER_SIZE * voice];
+    }
 };
 
 
