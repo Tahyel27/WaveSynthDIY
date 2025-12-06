@@ -2,86 +2,79 @@
 #include <bitset>
 #include <algorithm>
 #include "AudioInterface.hpp"
+#include "Components.hpp"
+#include "SynthCore/Common.hpp"
 
 namespace Synth
 {
-    constexpr size_t BUFFER_SIZE = 1024;
-    constexpr size_t CHUNK_SIZE = 128;
-    constexpr size_t CHUNKS_PER_BUFFER = BUFFER_SIZE / CHUNK_SIZE;
-    constexpr int VOICE_COUNT = 6;
- // namespace Synth
-
-using float_t = float;
-
-class BufferPool
-{
-private:
-
-    static constexpr size_t BUFFER_COUNT = 25;    
-
-    alignas(32) std::array<float_t, CHUNK_SIZE * BUFFER_COUNT> memory_pool;
-
-    std::bitset<BUFFER_COUNT> claimed_buffers;
-public:
-    BufferPool(/* args */){};
-    ~BufferPool(){};
-
-    float_t * getBuffer(int bufferID)
-    {
-        return &memory_pool[bufferID * CHUNK_SIZE];
-    }
-
-    int claimBuffer()
-    {
-        for (int i = 0; i < BUFFER_COUNT; i++)
-        {
-            if (!claimed_buffers[i])
-            {
-                claimed_buffers[i] = true;
-                return i;
-            }
-        }
-        
-        return -1;
-    }
-
-    void freeBuffer(int i)
-    {
-        claimed_buffers[i] = false;
-    }
-
-    void wipeBuffers()
-    {
-        std::fill_n(memory_pool.begin(),BUFFER_COUNT * CHUNK_SIZE,0);
-    }
-
-    void wipeAndFreeBuffers()
-    {
-        wipeBuffers();
-        claimed_buffers.reset();
-    }
-
-    static size_t getSize(){return BUFFER_COUNT;};
-};
-
+    
 struct VoiceBuffers
 {
     std::array<float_t, BUFFER_SIZE*VOICE_COUNT> data;
 
-    float_t * get(int voice)
+    inline float_t * get(int voice)
     {
         return &data[BUFFER_SIZE * voice];
     }
 };
 
+struct Node
+{
+    NodeType type;
+    int dataIndex;
+    int outputBuffer;
+};
+
+//defines an array of component data for each voice, sicne in different voices oscillators could be in a different phase for example
+struct Data
+{
+    static constexpr int WTOscNum = 2;
+    std::array<WTOscData, WTOscNum> WTOscArr;
+
+    static constexpr int OSCNum = 4;
+    std::array<SineOscData, OSCNum> SineOscArr;
+    std::array<SawOscData,  OSCNum> SawOscArr;
+
+    static constexpr int AmplifierNum = 5;
+    std::array<AmplifierData, AmplifierNum> AmplifierArr;
+};
+
+void processNode(NodeType type, int nodeID, Data &data, float_t *outbuffer, BufferPool *buffers);
 
 class SynthEngine : public AudioSource
 {
 private:
-    /* data */
-public:
+    BufferPool bufferPool;    
+
+    std::array<Node, MAX_GRAPH_NODES> nodeOrder;
+
+    int nodeCount = 0;
+
+    std::array<Data, VOICE_COUNT> voiceData;
+
+    VoiceBuffers voiceOutputs;
+
+    std::bitset<VOICE_COUNT> activeVoices;
+
+    void outputFromVoices(AudioBuffer buffer);
+
+    void processGraph();
+
+    void processChunk(int chunk, int voice);
+
+ public:
     SynthEngine(/* args */){};
     ~SynthEngine(){};
+
+    void initOneSineTest();
+
+    void initSineAndAmpTest();
+
+    void initSinModAmpTest();
+
+    void loadData(const Data &data_);
+
+    void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);
 
     virtual void audioCallback(AudioBuffer Buffer) override;
 };
