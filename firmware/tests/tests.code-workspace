@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "Tests",
+			"path": "."
+		},
+		{
+			"path": "../include"
+		},
+		{
+			"path": "../src"
+		}
+	],
+	"settings": {
+		"cmake.sourceDirectory": "${workspaceFolder:Tests}",
+		"cmake.defaultActiveFolder": "${workspaceFolder:Tests}",
+		"cmake.autoSelectActiveFolder": false
+	}
+}
