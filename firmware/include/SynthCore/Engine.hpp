@@ -40,7 +40,16 @@ struct Data
 
     static constexpr int ADSRNum = 5;
     std::array<ADSRData, ADSRNum> ADSRArr;
+
+    static constexpr int SVFNum = 4;
+    std::array<SVFData, SVFNum> SVFArr; 
 };
+
+struct NodeOrder
+{   
+    std::array<Node, MAX_GRAPH_NODES> data;
+};
+
 
 void processNode(NodeType type, int nodeID, Data &data, float_t *outbuffer, BufferPool *buffers);
 
@@ -49,7 +58,7 @@ class SynthEngine : public AudioSource
 private:
     BufferPool bufferPool;    
 
-    std::array<Node, MAX_GRAPH_NODES> nodeOrder;
+    std::array<NodeOrder, VOICE_COUNT> nodeOrderArray;
 
     int nodeCount = 0;
 
@@ -81,7 +90,15 @@ private:
 
     void initADSRTest();
 
+    void initLPFTest();
+
     void loadData(const Data &data_);
+
+    void loadVoiceData(const Data &data_, const NodeOrder &order_, int voice);
+
+    void startVoice(int voice);
+
+    void stopVoice(int voice);
 
     void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);
 

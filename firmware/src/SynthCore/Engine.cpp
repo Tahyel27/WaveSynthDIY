@@ -16,9 +16,9 @@ void Synth::SynthEngine::initOneSineTest()
     activeVoices[0] = true;
     nodeCount = 1;
     voiceData[0].SineOscArr[0] = SineOscData{0, {-1, 100}, {-1, 0}, {-1, 0}};  
-    nodeOrder[0].type = NodeType::SINEOSCILLATOR;
-    nodeOrder[0].dataIndex = 0;
-    nodeOrder[0].outputBuffer = -1; 
+    nodeOrderArray[0].data[0].type = NodeType::SINEOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = -1; 
 }
 
 void Synth::SynthEngine::initSineAndAmpTest()
@@ -27,13 +27,13 @@ void Synth::SynthEngine::initSineAndAmpTest()
     activeVoices[0] = true;
     nodeCount = 2;
     voiceData[0].SineOscArr[0] = SineOscData{0, {-1, 100}, {-1, 0}, {-1, 0}};
-    nodeOrder[0].type = NodeType::SINEOSCILLATOR;
-    nodeOrder[0].dataIndex = 0;
-    nodeOrder[0].outputBuffer = 0;
+    nodeOrderArray[0].data[0].type = NodeType::SINEOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = 0;
     voiceData[0].AmplifierArr[0] = AmplifierData{{0,0.0},{-1,0.5}};
-    nodeOrder[1].type = NodeType::AMPLIFIER;
-    nodeOrder[1].dataIndex = 0;
-    nodeOrder[1].outputBuffer = -1;
+    nodeOrderArray[0].data[1].type = NodeType::AMPLIFIER;
+    nodeOrderArray[0].data[1].dataIndex = 0;
+    nodeOrderArray[0].data[1].outputBuffer = -1;
 }
 // copies in data into the internal data representation, assigns buffers from pool to indicies and assigns to 6 voices
 void Synth::SynthEngine::initSinModAmpTest()
@@ -43,19 +43,19 @@ void Synth::SynthEngine::initSinModAmpTest()
     nodeCount = 3;
     
     voiceData[0].SineOscArr[0] = SineOscData{0, {-1, 1000}, {-1, 0}, {-1, 0}};
-    nodeOrder[0].type = NodeType::SINEOSCILLATOR;
-    nodeOrder[0].dataIndex = 0;
-    nodeOrder[0].outputBuffer = 0;
+    nodeOrderArray[0].data[0].type = NodeType::SINEOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = 0;
     
     voiceData[0].SineOscArr[1] = SineOscData{0, {-1, 80}, {-1, 0}, {-1, 0}};
-    nodeOrder[1].type = NodeType::SINEOSCILLATOR;
-    nodeOrder[1].dataIndex = 1;
-    nodeOrder[1].outputBuffer = 1;
+    nodeOrderArray[0].data[1].type = NodeType::SINEOSCILLATOR;
+    nodeOrderArray[0].data[1].dataIndex = 1;
+    nodeOrderArray[0].data[1].outputBuffer = 1;
 
     voiceData[0].AmplifierArr[0] = AmplifierData{{0, 0.0}, {1, 0.5}};
-    nodeOrder[2].type = NodeType::AMPLIFIER;
-    nodeOrder[2].dataIndex = 0;
-    nodeOrder[2].outputBuffer = -1;
+    nodeOrderArray[0].data[2].type = NodeType::AMPLIFIER;
+    nodeOrderArray[0].data[2].dataIndex = 0;
+    nodeOrderArray[0].data[2].outputBuffer = -1;
 }
 
 void Synth::SynthEngine::initSinFMModTest()
@@ -65,14 +65,14 @@ void Synth::SynthEngine::initSinFMModTest()
     nodeCount = 3;
 
     voiceData[0].SineOscArr[0] = SineOscData{0, {-1, 200}, {-1, 0}, {-1, 0}};
-    nodeOrder[0].type = NodeType::SINEOSCILLATOR;
-    nodeOrder[0].dataIndex = 0;
-    nodeOrder[0].outputBuffer = 0;
+    nodeOrderArray[0].data[0].type = NodeType::SINEOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = 0;
 
     voiceData[0].SineOscArr[1] = SineOscData{0, {-1, 100}, {0, 0}, {-1, 0.2}};
-    nodeOrder[1].type = NodeType::SINEOSCILLATOR;
-    nodeOrder[1].dataIndex = 1;
-    nodeOrder[1].outputBuffer = -1;
+    nodeOrderArray[0].data[1].type = NodeType::SINEOSCILLATOR;
+    nodeOrderArray[0].data[1].dataIndex = 1;
+    nodeOrderArray[0].data[1].outputBuffer = -1;
 }
 
 void Synth::SynthEngine::initWTTest()
@@ -91,9 +91,9 @@ void Synth::SynthEngine::initWTTest()
     osc.morph = ModInput{-1,0};
 
     voiceData[0].WTOscArr[0] = osc;
-    nodeOrder[0].type = NodeType::WTOSCILLATOR;
-    nodeOrder[0].dataIndex = 0;
-    nodeOrder[0].outputBuffer = -1;
+    nodeOrderArray[0].data[0].type = NodeType::WTOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = -1;
 }
 
 void Synth::SynthEngine::initADSRTest()
@@ -112,22 +112,50 @@ void Synth::SynthEngine::initADSRTest()
     osc.morph = ModInput{-1, 0};
 
     voiceData[0].WTOscArr[0] = osc;
-    nodeOrder[0].type = NodeType::WTOSCILLATOR;
-    nodeOrder[0].dataIndex = 0;
-    nodeOrder[0].outputBuffer = 0;
+    nodeOrderArray[0].data[0].type = NodeType::WTOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = 0;
 
     auto adsr = ADSRData();
     adsr.state = ADSRData::State::ATTACK;
     adsr.sustain = -0.5;
     voiceData[0].ADSRArr[0] = adsr;
-    nodeOrder[1].type = NodeType::ADSR;
-    nodeOrder[1].dataIndex = 0;
-    nodeOrder[1].outputBuffer = 1;
+    nodeOrderArray[0].data[1].type = NodeType::ADSR;
+    nodeOrderArray[0].data[1].dataIndex = 0;
+    nodeOrderArray[0].data[1].outputBuffer = 1;
 
     voiceData[0].AmplifierArr[0] = AmplifierData{{0, 0.0}, {1, 0.5}};
-    nodeOrder[2].type = NodeType::AMPLIFIER;
-    nodeOrder[2].dataIndex = 0;
-    nodeOrder[2].outputBuffer = -1;
+    nodeOrderArray[0].data[2].type = NodeType::AMPLIFIER;
+    nodeOrderArray[0].data[2].dataIndex = 0;
+    nodeOrderArray[0].data[2].outputBuffer = -1;
+}
+
+void Synth::SynthEngine::initLPFTest()
+{
+    activeVoices.reset();
+    activeVoices[0] = true;
+    nodeCount = 2;
+
+    WTOscData osc;
+    osc.wtIndex = 1;
+    osc.unison = 0;
+    osc.detune = ModInput{-1, 0.3};
+    osc.phaseDistMod = ModInput{-1, 0};
+    osc.phaseDistMod = ModInput{-1, 0};
+    osc.freq = ModInput{-1, 90};
+    osc.morph = ModInput{-1, 0};
+
+    voiceData[0].WTOscArr[0] = osc;
+    nodeOrderArray[0].data[0].type = NodeType::WTOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = 0;
+
+    SVFData filt;
+    filt.input = ModInput{0,0};
+    voiceData[0].SVFArr[0] = filt;
+    nodeOrderArray[0].data[1].type = NodeType::SVFLP;
+    nodeOrderArray[0].data[1].dataIndex = 0;
+    nodeOrderArray[0].data[1].outputBuffer = -1;
 }
 
 void SynthEngine::loadData(const Data &data_)
@@ -140,8 +168,37 @@ void SynthEngine::loadData(const Data &data_)
 
 void Synth::SynthEngine::loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes)
 {
-    nodeOrder = ordering;
+    nodeOrderArray[0].data = ordering;
     nodeCount = nodes;
+}
+
+void Synth::SynthEngine::loadVoiceData(const Synth::Data &data_, const Synth::NodeOrder &order_, int voice)
+{
+    if (voice >= VOICE_COUNT)
+    {
+        return;
+    }
+
+    voiceData[voice] = data_;
+    nodeOrderArray[voice] = order_;
+}
+
+void Synth::SynthEngine::startVoice(int voice)
+{
+    if (voice >= VOICE_COUNT)
+    {
+        return;
+    }
+    activeVoices[voice] = true;
+}
+
+void Synth::SynthEngine::stopVoice(int voice)
+{
+    if (voice >= VOICE_COUNT)
+    {
+        return;
+    }
+    activeVoices[voice] = false;
 }
 
 void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
@@ -191,16 +248,16 @@ void Synth::SynthEngine::processChunk(int chunk, int voice)
         //we have to send the NodeData array of our current voice, our current output buffer(as a pointer, we can always do this), and the buffer pool
         //the final output buffer pointer will wary depending on the chunk
         float_t * outbuffer;
-        if (nodeOrder[i].outputBuffer != -1)
+        if (nodeOrderArray[voice].data[i].outputBuffer != -1)
         {
-            outbuffer = bufferPool.getBuffer(nodeOrder[i].outputBuffer);
+            outbuffer = bufferPool.getBuffer(nodeOrderArray[voice].data[i].outputBuffer);
         }
         else
         {
             outbuffer = &voiceOutputs.get(voice)[CHUNK_SIZE * chunk];
         }
         
-        processNode(nodeOrder[i].type, nodeOrder[i].dataIndex, voiceData[voice], outbuffer, &bufferPool);
+        processNode(nodeOrderArray[voice].data[i].type, nodeOrderArray[voice].data[i].dataIndex, voiceData[voice], outbuffer, &bufferPool);
     }
     
 }
@@ -220,6 +277,9 @@ void Synth::processNode(NodeType type, int nodeID, Data &data, float_t *outbuffe
         break;
     case NodeType::ADSR:
         processADSR(&data.ADSRArr[nodeID], outbuffer);
+        break;
+    case NodeType::SVFLP:
+        processSVFLPData(&data.SVFArr[nodeID], buffers, outbuffer);
         break;
     default:
         break;

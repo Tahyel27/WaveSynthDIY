@@ -208,3 +208,52 @@ void Synth::processADSR(Synth::ADSRData *data, Synth::float_t *outbuffer)
         }
     }  
 }
+
+void Synth::processSVFLPData(Synth::SVFData *data, Synth::BufferPool *pool, Synth::float_t *outbuffer)
+{
+    std::array<float_t, CHUNK_SIZE> s_mod;
+    
+    float_t * cutoffMod = prepareInBuffer(data->modulation.bufID, data->modulation.v, pool, s_mod.begin());
+    float_t * inp = pool->getBuffer(data->input.bufID);
+
+    float_t &z1 = data->z1;
+    float_t &z2 = data->z2;
+    const float_t fcut = data->fcut;
+    const float_t fenv = data->fenv;
+
+    const float_t Q = data->Q;
+    const float_t inQ = 1 / data->Q;
+    const float_t iSPS = 1.f / static_cast<float>(SPS);
+
+    for (size_t i = 0; i < CHUNK_SIZE; i++)
+    {
+        float_t w = 2 * tan(M_PI * (fcut + fenv * cutoffMod[i]) * iSPS);
+        float_t alpha = (2 * M_PI * dt * fcut) / (2 * M_PI * dt * fcut + 1);
+        float_t c1 = w * inQ;
+        float_t c2 = w * Q;
+        
+        float_t d0 = w * w * 0.25;
+        float_t d1 = c2;
+        float_t d2 = 1.;
+
+        float_t in = inp[i];
+
+        //z1 = alpha * in + (1 - alpha) * z1;
+        
+        
+        float_t x = in - z1 - z2;
+        z2 += c2 * z1;
+        float_t out = d0 * x + z2;
+        z1 += c1 * x;
+        /*
+        in = (in + inp[i+1])*0.5;
+        x = in - z1 - z2;
+        z2 += c2 * z1;
+        out = d0 * x + z2;
+        z1 += c1 * x;*/
+
+        outbuffer[i] = out;
+        
+    }
+    
+}

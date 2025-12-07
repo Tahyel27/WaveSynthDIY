@@ -18,7 +18,8 @@ namespace Synth
         SINEOSCILLATOR,
         SAWOSCILLATOR,
         AMPLIFIER,
-        ADSR
+        ADSR,
+        SVFLP
     };
 
     struct DataHolder
@@ -91,10 +92,23 @@ namespace Synth
         float_t release = 0.0;
     };
     
+    struct SVFData
+    {
+        float_t z1 = 0;
+        float_t z2 = 0;
+
+        float_t fcut = 200;
+        float_t fenv = 0;
+        float_t Q = 1;
+        ModInput modulation = ModInput{-1, 0};
+        ModInput input;
+    };
+    
     
     void processWTOsc(WTOscData * data, BufferPool * pool, float_t * outbuffer);
     void processSineOsc(SineOscData * data, BufferPool *pool, float_t *outbuffer);
     void processSawOsc(SawOscData * data, BufferPool *pool, float_t *outbuffer);
     void processAmplifier(const AmplifierData &data, BufferPool *pool, float_t *outbuffer);
     void processADSR(ADSRData *data, float_t *outbuffer);
+    void processSVFLPData(SVFData *data, BufferPool *pool, float_t *outbuffer);
 }
