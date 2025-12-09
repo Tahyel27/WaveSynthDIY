@@ -223,34 +223,43 @@ void Synth::processSVFLPData(Synth::SVFData *data, Synth::BufferPool *pool, Synt
 
     const float_t Q = data->Q;
     const float_t inQ = 1 / data->Q;
+    const float_t iPI = 1 / M_PI;
     const float_t iSPS = 1.f / static_cast<float>(SPS);
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
-        float_t w = 2 * tan(M_PI * (fcut + fenv * cutoffMod[i]) * iSPS);
-        float_t alpha = (2 * M_PI * dt * fcut) / (2 * M_PI * dt * fcut + 1);
-        float_t c1 = w * inQ;
-        float_t c2 = w * Q;
+        //float_t w = 2 * tan(M_PI * (fcut + fenv * cutoffMod[i]) * iSPS);
+        //float_t alpha = (2 * M_PI * dt * fcut) / (2 * M_PI * dt * fcut + 1);
+        //float_t c1 = w * inQ;
+        //float_t c2 = w * Q;
         
-        float_t d0 = w * w * 0.25;
-        float_t d1 = c2;
-        float_t d2 = 1.;
+        //float_t d0 = w * w * 0.25;
+        //float_t d1 = c2;
+        //float_t d2 = 1.;
 
         float_t in = inp[i];
 
         //z1 = alpha * in + (1 - alpha) * z1;
         
         
-        float_t x = in - z1 - z2;
+        /*float_t x = in - z1 - z2;
         z2 += c2 * z1;
         float_t out = d0 * x + z2;
-        z1 += c1 * x;
+        z1 += c1 * x;*/
         /*
         in = (in + inp[i+1])*0.5;
         x = in - z1 - z2;
         z2 += c2 * z1;
         out = d0 * x + z2;
         z1 += c1 * x;*/
+        float_t g = (fcut + fenv * cutoffMod[i]) * M_PI * iSPS;
+        float_t d = 1/(1 + 2*Q*g + g*g);
+        float_t BP = (g*(in-z2) + z1)*d;
+        float_t v1 = BP - z1; z1 = BP + v1;
+        float_t v2 = g*BP;
+        float_t LP = v2 + z2; z2 = LP + v2;
+
+        float_t out = LP;
 
         outbuffer[i] = out;
         
