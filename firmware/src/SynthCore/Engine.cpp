@@ -138,11 +138,11 @@ void Synth::SynthEngine::initLPFTest()
 
     WTOscData osc;
     osc.wtIndex = 1;
-    osc.unison = 0;
-    osc.detune = ModInput{-1, 0.3};
+    osc.unison = 1;
+    osc.detune = ModInput{-1, 1};
     osc.phaseDistMod = ModInput{-1, 0};
     osc.phaseDistMod = ModInput{-1, 0};
-    osc.freq = ModInput{-1, 90};
+    osc.freq = ModInput{-1, 200};
     osc.morph = ModInput{-1, 0};
 
     voiceData[0].WTOscArr[0] = osc;
@@ -156,6 +156,46 @@ void Synth::SynthEngine::initLPFTest()
     nodeOrderArray[0].data[1].type = NodeType::SVFLP;
     nodeOrderArray[0].data[1].dataIndex = 0;
     nodeOrderArray[0].data[1].outputBuffer = -1;
+}
+
+void Synth::SynthEngine::initDelayTest()
+{
+    activeVoices.reset();
+    activeVoices[0] = true;
+    nodeCount = 4;
+
+    WTOscData osc;
+    osc.wtIndex = 1;
+    osc.unison = 0;
+    osc.detune = ModInput{-1, 0.3};
+    osc.phaseDistMod = ModInput{-1, 0};
+    osc.phaseDistMod = ModInput{-1, 0};
+    osc.freq = ModInput{-1, 90};
+    osc.morph = ModInput{-1, 0};
+
+    voiceData[0].WTOscArr[0] = osc;
+    nodeOrderArray[0].data[0].type = NodeType::WTOSCILLATOR;
+    nodeOrderArray[0].data[0].dataIndex = 0;
+    nodeOrderArray[0].data[0].outputBuffer = 0;
+
+    auto adsr = ADSRData();
+    adsr.state = ADSRData::State::ATTACK;
+    adsr.sustain = -0.5;
+    voiceData[0].ADSRArr[0] = adsr;
+    nodeOrderArray[0].data[1].type = NodeType::ADSR;
+    nodeOrderArray[0].data[1].dataIndex = 0;
+    nodeOrderArray[0].data[1].outputBuffer = 1;
+
+    voiceData[0].AmplifierArr[0] = AmplifierData{{0, 0.0}, {1, 0.5}};
+    nodeOrderArray[0].data[2].type = NodeType::AMPLIFIER;
+    nodeOrderArray[0].data[2].dataIndex = 0;
+    nodeOrderArray[0].data[2].outputBuffer = 2;
+
+    voiceData[0].delay = DelayData();
+    voiceData[0].delay.input.bufID = 2;
+    nodeOrderArray[0].data[3].type = NodeType::DELAY;
+    nodeOrderArray[0].data[3].dataIndex = 0;
+    nodeOrderArray[0].data[3].outputBuffer = -1;
 }
 
 void SynthEngine::loadData(const Data &data_)
@@ -280,6 +320,9 @@ void Synth::processNode(NodeType type, int nodeID, Data &data, float_t *outbuffe
         break;
     case NodeType::SVFLP:
         processSVFLPData(&data.SVFArr[nodeID], buffers, outbuffer);
+        break;
+    case NodeType::DELAY:
+        processDelayData(&data.delay, buffers, outbuffer);
         break;
     default:
         break;

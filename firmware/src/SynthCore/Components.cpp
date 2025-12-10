@@ -50,7 +50,7 @@ void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
     int unison = data->unison;
 
     const std::array<float, 3> unisonFactors = {0, 1, -1};
-    const std::array<float, 3> unisonAmps = {1, 0.4, 0.3};
+    const std::array<float, 4> unisonAmps = {1, 1, 0.4, 0.3};
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
@@ -222,36 +222,12 @@ void Synth::processSVFLPData(Synth::SVFData *data, Synth::BufferPool *pool, Synt
     const float_t fenv = data->fenv;
 
     const float_t Q = data->Q;
-    const float_t inQ = 1 / data->Q;
-    const float_t iPI = 1 / M_PI;
     const float_t iSPS = 1.f / static_cast<float>(SPS);
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
-        //float_t w = 2 * tan(M_PI * (fcut + fenv * cutoffMod[i]) * iSPS);
-        //float_t alpha = (2 * M_PI * dt * fcut) / (2 * M_PI * dt * fcut + 1);
-        //float_t c1 = w * inQ;
-        //float_t c2 = w * Q;
-        
-        //float_t d0 = w * w * 0.25;
-        //float_t d1 = c2;
-        //float_t d2 = 1.;
-
         float_t in = inp[i];
 
-        //z1 = alpha * in + (1 - alpha) * z1;
-        
-        
-        /*float_t x = in - z1 - z2;
-        z2 += c2 * z1;
-        float_t out = d0 * x + z2;
-        z1 += c1 * x;*/
-        /*
-        in = (in + inp[i+1])*0.5;
-        x = in - z1 - z2;
-        z2 += c2 * z1;
-        out = d0 * x + z2;
-        z1 += c1 * x;*/
         float_t g = (fcut + fenv * cutoffMod[i]) * M_PI * iSPS;
         float_t d = 1/(1 + 2*Q*g + g*g);
         float_t BP = (g*(in-z2) + z1)*d;
@@ -259,10 +235,39 @@ void Synth::processSVFLPData(Synth::SVFData *data, Synth::BufferPool *pool, Synt
         float_t v2 = g*BP;
         float_t LP = v2 + z2; z2 = LP + v2;
 
-        float_t out = LP;
-
-        outbuffer[i] = out;
+        outbuffer[i] = LP;
         
     }
+}
+
+void Synth::processDelayData(DelayData *data, BufferPool *pool, float_t *outbuffer)
+{
+    float_t * inbuffer = pool->getBuffer(data->input.bufID);
+    float_t gain = data->gain;
+    float_t * delayLine = data->delayLine.begin();
+
+    int &w_index = data->write_index;
+    int r_index = w_index - data->delay;
+    if (r_index < 0)
+    {
+        r_index += DelayData::LENGTH;
+    }
     
+    for (size_t i = 0; i < CHUNK_SIZE; i++)
+    {
+        float_t in = inbuffer[i];
+        float_t out = in + delayLine[r_index];
+        outbuffer[i] = out;
+        delayLine[w_index] = out * gain;
+        w_index++;
+        if (w_index == DelayData::LENGTH)
+        {
+            w_index = 0;
+        }
+        r_index++;
+        if (r_index == DelayData::LENGTH)
+        {
+            r_index = 0;
+        }
+    }
 }

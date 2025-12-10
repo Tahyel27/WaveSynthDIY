@@ -45,7 +45,8 @@ void longtest()
     Synth::SynthEngine engine;
     //engine.initWTTest();
     //engine.initADSRTest();
-    engine.initLPFTest();
+    engine.initDelayTest();
+    //engine.initLPFTest();
     //engine.initWTTest();
     std::array<uint32_t, 2048 * NBUFFERS> mock{};
     for (size_t i = 0; i < NBUFFERS; i++)

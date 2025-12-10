@@ -43,6 +43,8 @@ struct Data
 
     static constexpr int SVFNum = 4;
     std::array<SVFData, SVFNum> SVFArr; 
+
+    DelayData delay;
 };
 
 struct NodeOrder
@@ -91,6 +93,8 @@ private:
     void initADSRTest();
 
     void initLPFTest();
+
+    void initDelayTest();
 
     void loadData(const Data &data_);
 
