@@ -18,17 +18,7 @@ struct VoiceBuffers
     }
 };
 
-struct Node
-{
-    NodeType type;
-    int dataIndex;
-    int outputBuffer;
-};
 
-struct NodeOrder
-{   
-    std::array<Node, MAX_GRAPH_NODES> data;
-};
 
 class SynthEngine : public AudioSource
 {

@@ -117,6 +117,17 @@ namespace Synth
         float_t gain = 0.2;
     };
 
+    struct Node
+    {
+        NodeType type;
+        int dataIndex;
+        int outputBuffer;
+    };
+
+    struct NodeOrder
+    {
+        std::array<Node, MAX_GRAPH_NODES> data;
+    };
     // defines an array of component data for each voice, sicne in different voices oscillators could be in a different phase for example
     struct Data
     {
