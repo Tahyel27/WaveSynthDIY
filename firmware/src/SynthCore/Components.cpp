@@ -271,3 +271,34 @@ void Synth::processDelayData(DelayData *data, BufferPool *pool, float_t *outbuff
         }
     }
 }
+
+void Synth::globalDelay(DelayData *data, float_t *input, float_t *output, size_t bufferLength)
+{
+    float_t gain = data->gain;
+    float_t *delayLine = data->delayLine.begin();
+
+    int &w_index = data->write_index;
+    int r_index = w_index - data->delay;
+    if (r_index < 0)
+    {
+        r_index += DelayData::LENGTH;
+    }
+
+    for (size_t i = 0; i < bufferLength; i++)
+    {
+        float_t in = input[i];
+        float_t out = in + delayLine[r_index];
+        output[i] = out;
+        delayLine[w_index] = out * gain;
+        w_index++;
+        if (w_index == DelayData::LENGTH)
+        {
+            w_index = 0;
+        }
+        r_index++;
+        if (r_index == DelayData::LENGTH)
+        {
+            r_index = 0;
+        }
+    }
+}

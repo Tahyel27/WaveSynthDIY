@@ -162,7 +162,7 @@ void Synth::SynthEngine::initDelayTest()
 {
     activeVoices.reset();
     activeVoices[0] = true;
-    nodeCount = 4;
+    nodeCount = 3;
 
     WTOscData osc;
     osc.wtIndex = 1;
@@ -189,13 +189,9 @@ void Synth::SynthEngine::initDelayTest()
     voiceData[0].AmplifierArr[0] = AmplifierData{{0, 0.0}, {1, 0.5}};
     nodeOrderArray[0].data[2].type = NodeType::AMPLIFIER;
     nodeOrderArray[0].data[2].dataIndex = 0;
-    nodeOrderArray[0].data[2].outputBuffer = 2;
+    nodeOrderArray[0].data[2].outputBuffer = -1;
 
-    voiceData[0].delay = DelayData();
-    voiceData[0].delay.input.bufID = 2;
-    nodeOrderArray[0].data[3].type = NodeType::DELAY;
-    nodeOrderArray[0].data[3].dataIndex = 0;
-    nodeOrderArray[0].data[3].outputBuffer = -1;
+    useDelay = true;
 }
 
 void SynthEngine::loadData(const Data &data_)
@@ -251,14 +247,19 @@ void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
             float_t * output = voiceOutputs.get(i);
             for (size_t j = 0; j < BUFFER_SIZE; j++)
             {
-                tmp[j] += static_cast<float>(maxamp)*output[j];
+                tmp[j] += output[j];
             }
         }
     }
 
+    if (useDelay)
+    {
+        globalDelay(&delayLine, tmp.begin(), tmp.begin(), tmp.size());
+    }
+
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
-        buffer.write16bit(i, static_cast<int16_t>(tmp[i]), AudioBuffer::Mode::MONO);
+        buffer.write16bit(i, static_cast<int16_t>(maxamp*tmp[i]), AudioBuffer::Mode::MONO);
     }
 }
 
@@ -320,9 +321,6 @@ void Synth::processNode(NodeType type, int nodeID, Data &data, float_t *outbuffe
         break;
     case NodeType::SVFLP:
         processSVFLPData(&data.SVFArr[nodeID], buffers, outbuffer);
-        break;
-    case NodeType::DELAY:
-        processDelayData(&data.delay, buffers, outbuffer);
         break;
     default:
         break;

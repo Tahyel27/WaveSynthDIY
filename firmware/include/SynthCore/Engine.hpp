@@ -43,8 +43,6 @@ struct Data
 
     static constexpr int SVFNum = 4;
     std::array<SVFData, SVFNum> SVFArr; 
-
-    DelayData delay;
 };
 
 struct NodeOrder
@@ -69,6 +67,9 @@ private:
     VoiceBuffers voiceOutputs;
 
     std::bitset<VOICE_COUNT> activeVoices;
+
+    DelayData delayLine;
+    bool useDelay = true;
 
     void outputFromVoices(AudioBuffer buffer);
 

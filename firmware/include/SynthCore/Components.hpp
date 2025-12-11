@@ -108,7 +108,7 @@ namespace Synth
     struct DelayData
     {
         static constexpr unsigned int LENGTH = 15000;
-        int delay = 10000;
+        int delay = 14000;
         int write_index = 0;
 
         std::array<float_t, LENGTH> delayLine;
@@ -126,4 +126,6 @@ namespace Synth
     void processADSR(ADSRData *data, float_t *outbuffer);
     void processSVFLPData(SVFData *data, BufferPool *pool, float_t *outbuffer);
     void processDelayData(DelayData *data, BufferPool *pool, float_t *outbuffer);
+
+    void globalDelay(DelayData *data, float_t *input, float_t *output, size_t bufferLength);
 }
