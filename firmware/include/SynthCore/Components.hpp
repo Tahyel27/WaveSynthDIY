@@ -116,9 +116,27 @@ namespace Synth
 
         float_t gain = 0.2;
     };
-    
-    
-    
+
+    // defines an array of component data for each voice, sicne in different voices oscillators could be in a different phase for example
+    struct Data
+    {
+        static constexpr int WTOscNum = 2;
+        std::array<WTOscData, WTOscNum> WTOscArr;
+
+        static constexpr int OSCNum = 4;
+        std::array<SineOscData, OSCNum> SineOscArr;
+        std::array<SawOscData, OSCNum> SawOscArr;
+
+        static constexpr int AmplifierNum = 5;
+        std::array<AmplifierData, AmplifierNum> AmplifierArr;
+
+        static constexpr int ADSRNum = 5;
+        std::array<ADSRData, ADSRNum> ADSRArr;
+
+        static constexpr int SVFNum = 4;
+        std::array<SVFData, SVFNum> SVFArr;
+    };
+
     void processWTOsc(WTOscData * data, BufferPool * pool, float_t * outbuffer);
     void processSineOsc(SineOscData * data, BufferPool *pool, float_t *outbuffer);
     void processSawOsc(SawOscData * data, BufferPool *pool, float_t *outbuffer);
