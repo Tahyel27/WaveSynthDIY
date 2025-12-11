@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SynthCore/Engine.hpp>
+#include <SynthCore/Patches.hpp>
 #include <format>
 
 void printBuffer(const AudioBuffer &buffer)
@@ -40,14 +41,22 @@ void printMockStream(const std::array<uint32_t, 2048 * NBUFFERS> &mock)
     }
 }
 
+void setupEngineTest(Synth::SynthEngine &engine)
+{
+    auto [data, order] = engine.getDataForVoiceRef(0);
+    Synth::createSimpleWTPatchWithADSR(data, order);
+    engine.startVoice(0);
+}
+
 void longtest()
 {
     Synth::SynthEngine engine;
     //engine.initWTTest();
     //engine.initADSRTest();
-    engine.initDelayTest();
+    //engine.initDelayTest();
     //engine.initLPFTest();
     //engine.initWTTest();
+    setupEngineTest(engine);
     std::array<uint32_t, 2048 * NBUFFERS> mock{};
     for (size_t i = 0; i < NBUFFERS; i++)
     {
