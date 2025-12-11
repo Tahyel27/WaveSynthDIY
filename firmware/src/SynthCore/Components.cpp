@@ -97,24 +97,38 @@ void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
             data->phaseCounterC -= static_cast<float>(tablesize);
         }
 
-        float phA = data->phaseCounterA + phaseDistMod[i] * phaseDistort[i];
-        float phB = data->phaseCounterB + phaseDistMod[i] * phaseDistort[i];
-        float phC = data->phaseCounterC + phaseDistMod[i] * phaseDistort[i];
+        float phA = data->phaseCounterA + static_cast<float>(tablesize) * phaseDistMod[i] * phaseDistort[i];
+        float phB = data->phaseCounterB + static_cast<float>(tablesize) * phaseDistMod[i] * phaseDistort[i];
+        float phC = data->phaseCounterC + static_cast<float>(tablesize) * phaseDistMod[i] * phaseDistort[i];
 
-        phA = std::clamp(phA, 0.f, static_cast<float>(tablesize));
+        /*phA = std::clamp(phA, 0.f, static_cast<float>(tablesize));
         phB = std::clamp(phB, 0.f, static_cast<float>(tablesize));
-        phC = std::clamp(phC, 0.f, static_cast<float>(tablesize));
+        phC = std::clamp(phC, 0.f, static_cast<float>(tablesize));*/
+        
+        if (phA > static_cast<float>(tablesize))
+            phA = phA - static_cast<float>(tablesize);
+        if (phB > static_cast<float>(tablesize))
+            phB = phB - static_cast<float>(tablesize);
+        if (phC > static_cast<float>(tablesize))
+            phC = phC - static_cast<float>(tablesize);
 
-        outbuffer[i] = unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterA);
+        if (phA < 0)
+            phA += static_cast<float>(tablesize);
+        if (phB < 0)
+            phB += static_cast<float>(tablesize);
+        if (phC < 0)
+            phC += static_cast<float>(tablesize);
+
+        outbuffer[i] = unisonAmps[unison] * sampleTableLinear(table, phA);
         
         if (unison == 2)
         {
-            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterB);
+            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, phB);
         }
         else if(unison == 3)
         {
-            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterB);
-            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, data->phaseCounterC);
+            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, phB);
+            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, phC);
         }
     }
     
