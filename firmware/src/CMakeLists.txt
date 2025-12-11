@@ -1,5 +1,7 @@
 add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp)
 
+add_subdirectory(SynthCore)
+
 add_library(WavetableSynth WavetableSynth.cpp wavetable_data.cpp)
 
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/audio_device.pio)
@@ -19,6 +21,7 @@ target_link_libraries(${NAME}
         hardware_dma
         hardware_adc
         WavetableSynth
+        Engine
 )
 
 set_target_properties(${NAME} PROPERTIES

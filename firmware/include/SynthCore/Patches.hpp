@@ -2,17 +2,17 @@
 
 namespace Synth
 {
-    void createSimpleWTPatch(Data &data, NodeOrder &order)
+    void createSimpleWTPatch(Data &data, NodeOrder &order, int wtindex)
     {
         order.nodeCount = 1;
         
         WTOscData osc;
-        osc.wtIndex = 3;
+        osc.wtIndex = wtindex;
         osc.unison = 0;
         osc.detune = ModInput{-1, 0.3};
         osc.phaseDistMod = ModInput{-1, 0};
         osc.phaseDistMod = ModInput{-1, 0};
-        osc.freq = ModInput{-1, 90};
+        osc.freq = ModInput{-1, 250};
         osc.morph = ModInput{-1, 0};
 
         data.WTOscArr[0] = osc;
@@ -31,7 +31,7 @@ namespace Synth
         osc.detune = ModInput{-1, 0.3};
         osc.phaseDistMod = ModInput{-1, 0};
         osc.phaseDistMod = ModInput{-1, 0};
-        osc.freq = ModInput{-1, 90};
+        osc.freq = ModInput{-1, 200};
         osc.morph = ModInput{-1, 0};
 
         data.WTOscArr[0] = osc;
@@ -74,7 +74,8 @@ namespace Synth
 
         SVFData filt;
         filt.input = ModInput{0, 0};
-        filt.Q = 1;
+        filt.Q = 0.1;
+        filt.fcut = 2500;
 
         data.SVFArr[0] = filt;
         order.data[1].type = NodeType::SVFLP;
@@ -98,7 +99,7 @@ namespace Synth
         osc.wtIndex = 0;
         osc.unison = 1;
         osc.phaseDistort.bufID = 0;
-        osc.phaseDistMod.v = 0.8;
+        osc.phaseDistMod.v = 0.4;
         osc.freq.v = freq;
         osc.morph.v = 0;
 
@@ -109,4 +110,50 @@ namespace Synth
     }
 
     void createFMWTPatchWithADSR(Data &data, NodeOrder &order);
+
+    void createPatchAlgo1(Data &data, NodeOrder &order, float_t freq, float_t fcut, float_t fmod)
+    {
+        order.nodeCount = 4;
+
+        SineOscData sine1;
+        sine1.freq.v = freq;
+        data.SineOscArr[0] = sine1;
+
+        order.data[0].type = NodeType::SINEOSCILLATOR;
+        order.data[0].dataIndex = 0;
+        order.data[0].outputBuffer = 0;
+
+        WTOscData wtosc;
+        wtosc.wtIndex = 1;
+        wtosc.unison = 3;
+        wtosc.detune.v = 0.6;
+        wtosc.phaseDistort.bufID = 0;
+        wtosc.phaseDistMod.v = fmod;
+        wtosc.freq.v = freq;
+
+        data.WTOscArr[0] = wtosc;
+        order.data[1].type = NodeType::WTOSCILLATOR;
+        order.data[1].outputBuffer = 1;
+        order.data[1].dataIndex = 0;
+
+        SineOscData sine2;
+        sine2.freq.v = 1;
+        data.SineOscArr[1] = sine2;
+
+        order.data[2].type = NodeType::SINEOSCILLATOR;
+        order.data[2].outputBuffer = 2;
+        order.data[2].dataIndex = 1;
+
+        SVFData filt;
+        filt.fcut = fcut;
+        filt.Q = 0.1;
+        filt.fenv = 400;
+        filt.input.bufID = 1;
+        filt.modulation.bufID = 2;
+        data.SVFArr[0] = filt;
+
+        order.data[3].type = NodeType::SVFLP;
+        order.data[3].outputBuffer = -1;
+        order.data[3].dataIndex = 0;
+    }
 } // namespace Synth
