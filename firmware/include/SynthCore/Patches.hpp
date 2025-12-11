@@ -1,3 +1,5 @@
+#pragma once
+
 #include <SynthCore/Components.hpp>
 
 namespace Synth
