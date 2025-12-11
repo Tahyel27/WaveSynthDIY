@@ -137,6 +137,8 @@ namespace Synth
         std::array<SVFData, SVFNum> SVFArr;
     };
 
+    void processNode(NodeType type, int nodeID, Data &data, float_t *outbuffer, BufferPool *buffers);
+
     void processWTOsc(WTOscData * data, BufferPool * pool, float_t * outbuffer);
     void processSineOsc(SineOscData * data, BufferPool *pool, float_t *outbuffer);
     void processSawOsc(SawOscData * data, BufferPool *pool, float_t *outbuffer);

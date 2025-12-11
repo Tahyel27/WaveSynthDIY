@@ -2,6 +2,30 @@
 #include "wavetable_data.hpp"
 #include <cmath>
 
+void Synth::processNode(NodeType type, int nodeID, Data &data, float_t *outbuffer, BufferPool *buffers)
+{
+    switch (type)
+    {
+    case NodeType::WTOSCILLATOR:
+        processWTOsc(&data.WTOscArr[nodeID], buffers, outbuffer);
+        break;
+    case NodeType::AMPLIFIER:
+        processAmplifier(data.AmplifierArr[nodeID], buffers, outbuffer);
+        break;
+    case NodeType::SINEOSCILLATOR:
+        processSineOsc(&data.SineOscArr[nodeID], buffers, outbuffer);
+        break;
+    case NodeType::ADSR:
+        processADSR(&data.ADSRArr[nodeID], outbuffer);
+        break;
+    case NodeType::SVFLP:
+        processSVFLPData(&data.SVFArr[nodeID], buffers, outbuffer);
+        break;
+    default:
+        break;
+    }
+}
+
 inline int getBandIndex(float f, int wt_index)
 {
     int b_index = 0;
