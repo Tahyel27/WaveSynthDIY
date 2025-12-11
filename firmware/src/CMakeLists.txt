@@ -1,4 +1,4 @@
-add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp)
+add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp InstrumentManager.cpp)
 
 add_subdirectory(SynthCore)
 

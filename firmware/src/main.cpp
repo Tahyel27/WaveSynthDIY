@@ -8,6 +8,7 @@
 #include "WavetableSynth.hpp"
 #include <SynthCore/Engine.hpp>
 #include <SynthCore/Patches.hpp>
+#include <InstrumentManager.hpp>
 #include "ADSR.hpp"
 
 struct sineSynth
@@ -50,21 +51,57 @@ int main()
     auto device = AudioDevice(12,13,AudioDevice::DeviceMode::STEREO,1,irqHandler);
 
     auto engine = Synth::SynthEngine();
-    auto [data, ord] = engine.getDataForVoiceRef(0);
+    /*auto [data, ord] = engine.getDataForVoiceRef(0);
     Synth::createPatchAlgo1(data, ord, 70, 1200, 0.15);
     engine.startVoice(0);
-    engine.setDelay(false);
+    engine.setDelay(false);*/
+
+    InstrumentManager manager(&engine);
+
+    Synth::Data data; Synth::NodeOrder ord;
+    Synth::createPatchAlgo1(data, ord, 70, 1200, 0.15);
+    manager.setInstrument(data, ord, 0);
+    manager.playFrequency(100, 0, 1);
 
     device.setSource(&engine);
 
     device.initialize();
 
+    int timer = 0;
+
     while (true)
     {
         if(device.update())
         {
-            
-            
+            timer++;
+
+            if (timer == 100)
+            {
+                manager.release(1);
+            }
+
+            if (timer == 200)
+            {
+                manager.playFrequency(200, 0, 1);
+            }
+
+            if (timer == 250)
+            {
+                manager.playFrequency(400, 0, 2);
+            }
+
+            if (timer == 300)
+            {
+                manager.release(1);
+                manager.release(2);
+            }
+
+            if (timer == 400)
+            {
+                manager.playFrequency(100, 0, 1);
+                timer = 0;
+            }
         }
+
     }
 }

@@ -61,6 +61,8 @@ private:
 
     void stopVoice(int voice);
 
+    bool isVoiceActive(int voice);
+
     void setDelay(bool state);
 
     void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);

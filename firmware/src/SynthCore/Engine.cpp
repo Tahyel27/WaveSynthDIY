@@ -58,6 +58,11 @@ void Synth::SynthEngine::stopVoice(int voice)
     activeVoices[voice] = false;
 }
 
+bool Synth::SynthEngine::isVoiceActive(int voice)
+{
+    return activeVoices[voice];
+}
+
 void Synth::SynthEngine::setDelay(bool state)
 {
     useDelay = state;
