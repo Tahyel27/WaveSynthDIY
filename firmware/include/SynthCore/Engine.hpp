@@ -4,6 +4,7 @@
 #include <bitset>
 #include <algorithm>
 #include <tuple>
+#include <cmath>
 #include "AudioInterface.hpp"
 #include "Components.hpp"
 #include "SynthCore/Common.hpp"

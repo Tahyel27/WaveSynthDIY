@@ -70,6 +70,8 @@ void Synth::SynthEngine::setDelay(bool state)
 
 void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
 {
+    float_t gain = 1.0f / sqrtf(static_cast<float>(activeVoices.count()));
+    
     std::array<float, BUFFER_SIZE> tmp{};
     for (size_t i = 0; i < VOICE_COUNT; i++)
     {
@@ -78,7 +80,7 @@ void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
             float_t * output = voiceOutputs.get(i);
             for (size_t j = 0; j < BUFFER_SIZE; j++)
             {
-                tmp[j] += output[j];
+                tmp[j] += gain * output[j];
             }
         }
     }
