@@ -20,7 +20,7 @@ void printSineWave()
     //engine.initSineAndAmpTest();
     //engine.initSinFMModTest();
     //engine.initSinModAmpTest();
-    engine.initWTTest();
+    //engine.initWTTest();
     std::array<uint32_t, 2048> mock{};
     AudioBuffer buffer;
     buffer.buffer = mock.begin();
@@ -44,7 +44,9 @@ void printMockStream(const std::array<uint32_t, 2048 * NBUFFERS> &mock)
 void setupEngineTest(Synth::SynthEngine &engine)
 {
     auto [data, order] = engine.getDataForVoiceRef(0);
-    Synth::createSimpleWTPatchWithADSR(data, order);
+    //Synth::createSimpleWTPatchWithADSR(data, order);
+    //Synth::createWTPatchwithFilter(data, order);
+    Synth::createFMWTPatch(data, order, 200.f);
     engine.startVoice(0);
 }
 
