@@ -1,6 +1,7 @@
 #include <array>
 #include <bitset>
 #include <algorithm>
+#include <tuple>
 #include "AudioInterface.hpp"
 #include "Components.hpp"
 #include "SynthCore/Common.hpp"
@@ -36,7 +37,7 @@ private:
     std::bitset<VOICE_COUNT> activeVoices;
 
     DelayData delayLine;
-    bool useDelay = true;
+    bool useDelay = false;
 
     void outputFromVoices(AudioBuffer buffer);
 
@@ -68,9 +69,13 @@ private:
 
     void loadVoiceData(const Data &data_, const NodeOrder &order_, int voice);
 
+    std::tuple<Data&, NodeOrder&> getDataForVoiceRef(int voice);
+
     void startVoice(int voice);
 
     void stopVoice(int voice);
+
+    void setDelay(bool state);
 
     void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);
 

@@ -128,6 +128,8 @@ void Synth::SynthEngine::initADSRTest()
     nodeOrderArray[0].data[2].type = NodeType::AMPLIFIER;
     nodeOrderArray[0].data[2].dataIndex = 0;
     nodeOrderArray[0].data[2].outputBuffer = -1;
+
+    nodeOrderArray[0].nodeCount = 3;
 }
 
 void Synth::SynthEngine::initLPFTest()
@@ -192,6 +194,8 @@ void Synth::SynthEngine::initDelayTest()
     nodeOrderArray[0].data[2].outputBuffer = -1;
 
     useDelay = true;
+
+    nodeOrderArray[0].nodeCount = 3;
 }
 
 void SynthEngine::loadData(const Data &data_)
@@ -219,6 +223,11 @@ void Synth::SynthEngine::loadVoiceData(const Synth::Data &data_, const Synth::No
     nodeOrderArray[voice] = order_;
 }
 
+std::tuple<Data &, NodeOrder &> Synth::SynthEngine::getDataForVoiceRef(int voice)
+{
+    return std::tuple<Data &, NodeOrder &>(voiceData[voice],nodeOrderArray[voice]);
+}
+
 void Synth::SynthEngine::startVoice(int voice)
 {
     if (voice >= VOICE_COUNT)
@@ -235,6 +244,11 @@ void Synth::SynthEngine::stopVoice(int voice)
         return;
     }
     activeVoices[voice] = false;
+}
+
+void Synth::SynthEngine::setDelay(bool state)
+{
+    useDelay = state;
 }
 
 void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
@@ -283,7 +297,7 @@ void Synth::SynthEngine::processChunk(int chunk, int voice)
 {
     bufferPool.wipeBuffers();
     //we iterate over the operations in the queue
-    for (size_t i = 0; i < nodeCount; i++)
+    for (size_t i = 0; i < nodeOrderArray[voice].nodeCount; i++)
     {
         //we send the node to processing
         //we have to send the NodeData array of our current voice, our current output buffer(as a pointer, we can always do this), and the buffer pool

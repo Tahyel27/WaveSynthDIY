@@ -127,6 +127,7 @@ namespace Synth
     struct NodeOrder
     {
         std::array<Node, MAX_GRAPH_NODES> data;
+        int nodeCount;
     };
     // defines an array of component data for each voice, sicne in different voices oscillators could be in a different phase for example
     struct Data
