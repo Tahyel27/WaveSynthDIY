@@ -30,9 +30,6 @@ struct NodeOrder
     std::array<Node, MAX_GRAPH_NODES> data;
 };
 
-
-void processNode(NodeType type, int nodeID, Data &data, float_t *outbuffer, BufferPool *buffers);
-
 class SynthEngine : public AudioSource
 {
 private:
