@@ -49,22 +49,6 @@ private:
     SynthEngine(/* args */){};
     ~SynthEngine(){};
 
-    void initOneSineTest();
-
-    void initSineAndAmpTest();
-
-    void initSinModAmpTest();
-
-    void initSinFMModTest();
-
-    void initWTTest();
-
-    void initADSRTest();
-
-    void initLPFTest();
-
-    void initDelayTest();
-
     void loadData(const Data &data_);
 
     void loadVoiceData(const Data &data_, const NodeOrder &order_, int voice);
