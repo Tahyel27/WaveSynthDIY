@@ -112,7 +112,7 @@ private:
     Buffer buffer;
     uint32_t *buffer_start_pointer; //we will provide this to the DMA
 
-    bool buffer_update_flag = false;
+    volatile bool buffer_update_flag = false;
 
     uint64_t chunkcount = 0; //number of audio buffers outputted from this device
 
