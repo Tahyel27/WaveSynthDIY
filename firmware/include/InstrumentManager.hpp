@@ -29,4 +29,22 @@ public:
     void playFrequency(float frequency, int instrument, int playID);
 
     void release(int playID);
+
+    template<typename Func>
+    void updateInstrument(Func func, int instrument);
+
 };
+
+template <class Func>
+void InstrumentManager::updateInstrument(Func func, int instrument)
+{
+    func(instrumentsData[instrument]);
+
+    for (size_t i = 0; i < Synth::VOICE_COUNT; i++)
+    {
+        if (voiceInstrumentMapping[i] == instrument)
+        {
+            func(engine->getDataRef(i));
+        }
+    }
+}

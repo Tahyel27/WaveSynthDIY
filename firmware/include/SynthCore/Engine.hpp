@@ -58,6 +58,8 @@ private:
 
     std::tuple<Data&, NodeOrder&> getDataForVoiceRef(int voice);
 
+    inline Data& getDataRef(int voice);
+
     void startVoice(int voice);
 
     void stopVoice(int voice);
@@ -70,5 +72,10 @@ private:
 
     virtual void audioCallback(AudioBuffer Buffer) override;
 };
+
+inline Data &Synth::SynthEngine::getDataRef(int voice)
+{
+    return voiceData[voice];
+}
 
 }
