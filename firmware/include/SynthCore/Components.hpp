@@ -84,7 +84,7 @@ namespace Synth
             SUSTAIN,
             RELEASE
         };
-        State state = State::IDLE;
+        State state = State::ATTACK;
 
         float_t attack = 0.05;
         float_t hold = 0.0;
