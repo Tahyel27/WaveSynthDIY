@@ -261,13 +261,15 @@ void Synth::processSVFLPData(Synth::SVFData *data, Synth::BufferPool *pool, Synt
 
     const float_t Q = data->Q;
     const float_t iSPS = 1.f / static_cast<float>(SPS);
+    const float_t g = (fcut + fenv * cutoffMod[0]) * M_PI * iSPS;
+    const float_t d = 1 / (1 + 2 * Q * g + g * g);
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
         float_t in = inp[i];
 
-        float_t g = (fcut + fenv * cutoffMod[i]) * M_PI * iSPS;
-        float_t d = 1/(1 + 2*Q*g + g*g);
+        //float_t g = (fcut + fenv * cutoffMod[i]) * M_PI * iSPS;
+        //float_t d = 1/(1 + 2*Q*g + g*g);
         float_t BP = (g*(in-z2) + z1)*d;
         float_t v1 = BP - z1; z1 = BP + v1;
         float_t v2 = g*BP;
