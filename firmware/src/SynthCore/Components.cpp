@@ -44,7 +44,7 @@ inline int getBandIndex(float f, int wt_index)
 inline Synth::float_t sampleTableLinear(const int16_t *t, float_t x)
 {
     const Synth::float_t mul = 3.05185e-5;
-    int i = static_cast<int>(floor(x));
+    int i = static_cast<int>(x);
     Synth::float_t f = x - i;
     return static_cast<Synth::float_t>((1 - f) * t[i] + f * t[i + 1]) * mul;
 }
@@ -118,7 +118,7 @@ void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
             phB += static_cast<float>(tablesize);
         if (phC < 0)
             phC += static_cast<float>(tablesize);
-
+        
         outbuffer[i] = unisonAmps[unison] * sampleTableLinear(table, phA);
         
         if (unison == 2)
