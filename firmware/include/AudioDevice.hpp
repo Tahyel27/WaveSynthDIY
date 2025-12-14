@@ -93,7 +93,7 @@ private:
 
     //-----------------------------------
     //--------AUDIO BUFFERS AND CONTROLS---
-    static const size_t BUFFSIZE = 2048;
+    static const size_t BUFFSIZE = 1024;
     struct Buffer    //MAYBE REMOVE
     {
         uint32_t A[BUFFSIZE];

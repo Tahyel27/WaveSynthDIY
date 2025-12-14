@@ -9,8 +9,8 @@ namespace Synth
 {
     using float_t = float;
 
-    constexpr size_t BUFFER_SIZE = 1024;
-    constexpr size_t CHUNK_SIZE = 128;
+    constexpr size_t BUFFER_SIZE = 512;
+    constexpr size_t CHUNK_SIZE = 32;
     constexpr size_t CHUNKS_PER_BUFFER = BUFFER_SIZE / CHUNK_SIZE;
     constexpr int VOICE_COUNT = 6;
     constexpr int MAX_GRAPH_NODES = 20;
