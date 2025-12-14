@@ -49,6 +49,23 @@ inline Synth::float_t sampleTableLinear(const int16_t *t, float_t x)
     return static_cast<Synth::float_t>((1 - f) * t[i] + f * t[i + 1]) * mul;
 }
 
+static inline Synth::float_t sampleTableLinearFixed(const int16_t *t, uint32_t t10Q22)
+{
+    const int16_t A = t[t10Q22 >> 22];
+    const int16_t B = t[(t10Q22 >> 22) + 1];
+    const uint32_t max32bit = ((uint32_t)0 - 1);
+    const uint32_t max16bit = max32bit >> 16;
+    const float bit16tofl = 1. / static_cast<float>(max16bit);
+    const float tableTo0float1 = bit16tofl * bit16tofl;
+
+    const uint32_t angle = (max32bit >> 10) & t10Q22;
+
+    const uint32_t inter = angle >> 6;
+
+    const int32_t value = (uint32_t)A * (max16bit - inter) + (uint32_t)B * (inter);
+    return static_cast<Synth::float_t>(value) * tableTo0float1;
+}
+
 void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
 {    
     std::array<float_t, CHUNK_SIZE> s_detune;
@@ -71,67 +88,69 @@ void Synth::processWTOsc(WTOscData * data, BufferPool *pool, float_t *outbuffer)
 
     const float increment = static_cast<float> (tablesize) / static_cast<float> (SPS);
 
+    float_t tablesize_f = static_cast<float_t>(tablesize);
+    const uint32_t phaseInrement_base = (1 << 22);
+    const uint32_t max32bit = ((uint32_t)0 - 1);
+    const float scale = 1.f / static_cast<float>((max32bit >> 10));
+    const float phi_iAf = static_cast<float>(phaseInrement_base) * tablesize_f * freq[0] / SPS;
+    const float phi_iBf = static_cast<float>(phaseInrement_base) * tablesize_f * (freq[0] + detune[0]) / SPS;
+    const float phi_iCf = static_cast<float>(phaseInrement_base) * tablesize_f * (freq[0] - detune[0]) / SPS;
+    const uint32_t phi_iA = static_cast<uint32_t>(phi_iAf);
+    const uint32_t phi_iB = static_cast<uint32_t>(phi_iBf);
+    const uint32_t phi_iC = static_cast<uint32_t>(phi_iCf);
+    const float_t dist_base = static_cast<float>(phaseInrement_base) * tablesize_f * phaseDistMod[0];
+
     int unison = data->unison;
 
     const std::array<float, 3> unisonFactors = {0, 1, -1};
     const std::array<float, 4> unisonAmps = {1, 1, 0.4, 0.3};
 
-    for (size_t i = 0; i < CHUNK_SIZE; i++)
+    
+    if (unison == 1)
     {
-        data->phaseCounterA += increment * freq[i];
-        data->phaseCounterB += increment * (freq[i] + detune[i]);
-        data->phaseCounterC += increment * (freq[i] - detune[i]);
-
-        if (data->phaseCounterA > tablesize)
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
         {
-            data->phaseCounterA -= static_cast<float>(tablesize);
+            data->phA += phi_iA;
+            float_t dist = static_cast<float>(phaseInrement_base) * tablesize_f * phaseDistMod[i] * phaseDistort[i];
+            const uint32_t phiAdist = data->phA + static_cast<uint32_t>(dist);
+
+            outbuffer[i] = sampleTableLinearFixed(table, phiAdist);
         }
-
-        if (data->phaseCounterB > tablesize)
-        {
-            data->phaseCounterB -= static_cast<float>(tablesize);
-        }
-
-        if (data->phaseCounterC > tablesize)
-        {
-            data->phaseCounterC -= static_cast<float>(tablesize);
-        }
-
-        float phA = data->phaseCounterA + static_cast<float>(tablesize) * phaseDistMod[i] * phaseDistort[i];
-        float phB = data->phaseCounterB + static_cast<float>(tablesize) * phaseDistMod[i] * phaseDistort[i];
-        float phC = data->phaseCounterC + static_cast<float>(tablesize) * phaseDistMod[i] * phaseDistort[i];
-
-        /*phA = std::clamp(phA, 0.f, static_cast<float>(tablesize));
-        phB = std::clamp(phB, 0.f, static_cast<float>(tablesize));
-        phC = std::clamp(phC, 0.f, static_cast<float>(tablesize));*/
         
-        if (phA > static_cast<float>(tablesize))
-            phA = phA - static_cast<float>(tablesize);
-        if (phB > static_cast<float>(tablesize))
-            phB = phB - static_cast<float>(tablesize);
-        if (phC > static_cast<float>(tablesize))
-            phC = phC - static_cast<float>(tablesize);
+    }
+    else if (unison == 2)
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            data->phA += phi_iA;
+            data->phB += phi_iB;
+            float_t dist = static_cast<float>(phaseInrement_base) * tablesize_f * phaseDistMod[i] * phaseDistort[i];
+            const uint32_t phiAdist = data->phA + static_cast<uint32_t>(dist);
+            const uint32_t phiBdist = data->phB + static_cast<uint32_t>(dist);
 
-        if (phA < 0)
-            phA += static_cast<float>(tablesize);
-        if (phB < 0)
-            phB += static_cast<float>(tablesize);
-        if (phC < 0)
-            phC += static_cast<float>(tablesize);
-        
-        outbuffer[i] = unisonAmps[unison] * sampleTableLinear(table, phA);
-        
-        if (unison == 2)
-        {
-            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, phB);
-        }
-        else if(unison == 3)
-        {
-            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, phB);
-            outbuffer[i] += unisonAmps[unison] * sampleTableLinear(table, phC);
+            outbuffer[i] = sampleTableLinearFixed(table, phiAdist) * 0.4;
+            outbuffer[i] += sampleTableLinearFixed(table, phiBdist) * 0.4;
         }
     }
-    
+    else if (unison == 3)
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            data->phA += phi_iA;
+            data->phB += phi_iB;
+            data->phC += phi_iC;
+            float_t dist = dist_base * phaseDistort[i];
+            const uint32_t phiAdist = data->phA + static_cast<uint32_t>(dist);
+            const uint32_t phiBdist = data->phB + static_cast<uint32_t>(dist);
+            const uint32_t phiCdist = data->phC + static_cast<uint32_t>(dist);
+
+            const float_t outA = sampleTableLinearFixed(table, phiAdist);
+            const float_t outB = sampleTableLinearFixed(table, phiBdist);
+            const float_t outC= sampleTableLinearFixed(table, phiCdist);
+            outbuffer[i] = 0.4*(outA + outB + outC);
+        }
+        
+    }
 }
 
 void Synth::processSineOsc(SineOscData * data, BufferPool *pool, float_t *outbuffer)
@@ -144,20 +163,30 @@ void Synth::processSineOsc(SineOscData * data, BufferPool *pool, float_t *outbuf
     float_t *phaseDistMod = prepareInBuffer(data->phaseDistMod.bufID, data->phaseDistMod.v, pool, s_phaseDistMod.begin());
     float_t *freq = prepareInBuffer(data->freq.bufID, data->freq.v, pool, s_freq.begin());
 
-    float_t phaseCounter = data->phaseCounter;
+    //float_t phaseCounter = data->phaseCounter;
+    uint32_t phaseCounter = data->ph; 
+    //const uint32_t f = static_cast<uint32_t>(freq[0] * 16.f) << (22 - 4);
+    const uint32_t phaseInrement_base = (1 << 22);
+    const int tablesize = 1024;
+    const float phi_i = static_cast<float>(phaseInrement_base) * tablesize * freq[0] / SPS;
+    const uint32_t phaseIncrement = static_cast<uint32_t> (phi_i);
+
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
-        phaseCounter += dt*freq[i];
+        /*phaseCounter += dt*freq[i];
         if (phaseCounter > 1)
         {
             phaseCounter -= 1;
-        }
+        }*/
+        phaseCounter += phaseIncrement;
 
-        outbuffer[i] = sinf(2*M_PI*(phaseCounter + phaseDistMod[i] * phaseDistort[i]));
+        //outbuffer[i] = sinf(2*M_PI*(phaseCounter + phaseDistMod[i] * phaseDistort[i]));
+        outbuffer[i] = sampleTableLinearFixed(wt_library[0][0].data, phaseCounter) * 4;
     }
 
     data->phaseCounter = phaseCounter;
+    data->ph = phaseCounter;
     
 }
 

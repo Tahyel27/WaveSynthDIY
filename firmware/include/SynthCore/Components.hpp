@@ -31,9 +31,9 @@ namespace Synth
 
     struct WTOscData
     {
-        float_t phaseCounterA = 0;
-        float_t phaseCounterB = 0;
-        float_t phaseCounterC = 0;
+        uint32_t phA = 0;
+        uint32_t phB = 0;
+        uint32_t phC = 0;
 
         int wtIndex = 0;
         int unison = 1;
@@ -50,6 +50,7 @@ namespace Synth
     struct SineOscData
     {
         float_t phaseCounter = 0;
+        uint32_t ph = 0;
 
         ModInput freq;
         ModInput phaseDistort;
