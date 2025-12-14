@@ -2,6 +2,9 @@ add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp InstrumentManage
 
 add_subdirectory(SynthCore)
 
+#for hardware profiling purposes
+#target_link_libraries(Engine pico_stdlib)
+
 add_library(WavetableSynth WavetableSynth.cpp wavetable_data.cpp)
 
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/audio_device.pio)
