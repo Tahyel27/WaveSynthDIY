@@ -66,6 +66,7 @@ void InstrumentManager::release(int playID)
             engine->stopVoice(i);
             releaseCounter++;
             vReleaseOrder[i] = releaseCounter;
+            playIDs[i] = -1;
         }
         
     }
