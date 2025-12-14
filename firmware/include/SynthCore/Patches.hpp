@@ -158,4 +158,60 @@ namespace Synth
         order.data[3].outputBuffer = -1;
         order.data[3].dataIndex = 0;
     }
+
+    void createPatchAlgo2(Data &data, NodeOrder &order)
+    {
+        order.nodeCount = 7;
+        
+        SineOscData osc1;
+        osc1.freq.v = 200;
+        data.SineOscArr[0] = osc1;
+        order.data[0].type = NodeType::SINEOSCILLATOR;
+        order.data[0].outputBuffer = 0;
+        order.data[0].dataIndex = 0;
+        
+        WTOscData wtosc;
+        wtosc.freq.v = 200;
+        wtosc.phaseDistort.bufID = 0;
+        data.WTOscArr[0] = wtosc;
+        order.data[1].type = NodeType::WTOSCILLATOR;
+        order.data[1].outputBuffer = 1;
+        order.data[1].dataIndex = 0;
+
+        SineOscData osc2;
+        osc2.freq.v = 2;
+        data.SineOscArr[1] = osc2;
+        order.data[2].type = NodeType::SINEOSCILLATOR;
+        order.data[2].outputBuffer = 2;
+        order.data[2].dataIndex = 1;
+
+        data.ADSRArr[0] = ADSRData();
+        order.data[3].type = NodeType::ADSR;
+        order.data[3].outputBuffer = 3;
+        order.data[3].dataIndex = 0;
+        
+        SVFData filt;
+        filt.fcut = 400;
+        filt.fenv = 800;
+        filt.input.bufID = 1;
+        filt.modulation.bufID = 3;
+        data.SVFArr[0] = filt;
+        order.data[4].type = NodeType::SVFLP;
+        order.data[4].outputBuffer = 4;
+        order.data[4].dataIndex = 0;
+
+        data.ADSRArr[1] = ADSRData();
+        order.data[5].type = NodeType::ADSR;
+        order.data[5].outputBuffer = 5;
+        order.data[5].dataIndex = 1;
+
+        AmplifierData amp;
+        amp.amount.bufID = 5;
+        amp.input.bufID = 4;
+        data.AmplifierArr[0] = amp;
+        order.data[6].type = NodeType::AMPLIFIER;
+        order.data[6].outputBuffer = -1;
+        order.data[6].dataIndex = 0;
+
+    }
 } // namespace Synth
