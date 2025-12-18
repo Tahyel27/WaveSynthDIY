@@ -29,7 +29,11 @@ namespace Synth
         std::bitset<BUFFER_COUNT> claimed_buffers;
 
     public:
-        BufferPool(/* args */) {};
+        BufferPool(/* args */) 
+        {
+            std::fill_n(memory_pool.begin(), memory_pool.size(), 0.0);
+        }
+
         ~BufferPool() {};
 
         float_t *getBuffer(int bufferID)
