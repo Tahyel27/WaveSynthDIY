@@ -1,0 +1,17 @@
+;first the program is in a stalled state with old data in the ISR
+;once we start the program it will start pulling 32bits of data in from the shift registers
+;first it momentarily releases the latch, then after a short pause it starts supplying a clock signal
+;and data starts coming in
+;after 32 bits push to RX FIFO
+
+.program button_array
+.side_set 1
+    set pins, 1    side 1 [3]
+    set pins, 0    side 1
+    set pins, 1    side 1
+    set x, 31      side 0 [1] ;read 31 buttons
+loop:
+    nop            side 1
+    in pins,  1    side 1 
+    jmp x-- loop   side 0 [1]
+    push           side 1    ;the fourth push here will stall, so we need to clear it
