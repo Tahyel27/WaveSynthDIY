@@ -2,6 +2,8 @@ add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp InstrumentManage
 
 add_subdirectory(SynthCore)
 
+add_subdirectory(Controller)
+
 #for hardware profiling purposes
 #target_link_libraries(Engine pico_stdlib)
 
@@ -25,6 +27,7 @@ target_link_libraries(${NAME}
         hardware_adc
         WavetableSynth
         Engine
+        Controller
 )
 
 set_target_properties(${NAME} PROPERTIES
