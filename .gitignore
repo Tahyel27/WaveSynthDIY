@@ -9,3 +9,4 @@ playground/analog_mux/analog_mux-backups/
 firmware/include/wavetable_data.hpp
 firmware/src/wavetable_data.cpp
 **/*.wav
+playground/encodertest/.gitignore
