@@ -20,6 +20,11 @@ struct VoiceBuffers
     {
         return &data[BUFFER_SIZE * voice];
     }
+
+    VoiceBuffers()
+    {
+        std::fill_n(data.begin(), data.size(), 0.00);
+    }
 };
 
 
@@ -49,7 +54,7 @@ private:
     void processChunk(int chunk, int voice);
 
  public:
-    SynthEngine(/* args */){};
+    SynthEngine(/* args */);
     ~SynthEngine(){};
 
     void loadData(const Data &data_);
