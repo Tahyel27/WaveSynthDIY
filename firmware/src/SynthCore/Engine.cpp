@@ -136,3 +136,7 @@ void Synth::SynthEngine::processChunk(int chunk, int voice)
     
 }
 
+Synth::SynthEngine::SynthEngine()
+{
+    std::fill_n(delayLine.delayLine.begin(), delayLine.LENGTH, 0.0f);
+}
