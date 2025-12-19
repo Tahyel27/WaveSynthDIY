@@ -12,6 +12,8 @@
 #include <Controller/Controller.hpp>
 #include "ADSR.hpp"
 #include "HWProfiler.hpp"
+#include "Events.hpp"
+#include "StaticQueue.hpp"
 
 struct sineSynth
 {
@@ -94,7 +96,7 @@ int main()
         d.SVFArr[0].fenv = 2000;
         d.SVFArr[0].Q = 0.2;
         d.WTOscArr[0].wtIndex = 1;
-        d.WTOscArr[0].unison = 3;
+        d.WTOscArr[0].unison = 1;
         d.WTOscArr[0].detune.v = 0.6;
         d.WTOscArr[0].phaseDistMod.v = 0;
         d.ADSRArr[0].sustain = 0;
@@ -119,12 +121,15 @@ int main()
         261.63f  // C4
     };
 
+    auto queue = staticQueue<Event, 20>();
+
+    auto encoderArr = EncoderArray(5, 4, 3);
 
     while (true)
     {
         if(device.update())
         {
-            seq.tick();
+            //seq.tick();
             /*float v = analog.readChannelVoltageStable(4);
 
             manager.updateInstrument([&v](Synth::Data &d){
@@ -159,7 +164,23 @@ int main()
                 
                 b = btnarr.getEvent();
             }
+            HWProfiler::putHI();
 
+            encoderArr.pollEvents(queue);
+            if (!queue.empty())
+            {
+                auto ev = queue.pop();
+                if (ev.type == Event::Type::ENCODER_LEFT)
+                {
+                    printf("LEFT Encoder value: %d\n", ev.ID);
+                }
+                else
+                {
+                    printf("RIGHT Encoder value: %d\n", ev.ID);
+                }
+            }
+            
+            HWProfiler::putLO();
             /*timer++;
 
             if (timer == 100)

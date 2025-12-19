@@ -167,7 +167,7 @@ int main()
     while (true) {
         //printf("Hello, world!\n");
         uint32_t w = poll(pio);
-        //printbinary(w);
+        printbinary(w);
         //printf("%d\n", readbit(w,0));
         int res = readEncoder(&enc, w);
         if (res)
