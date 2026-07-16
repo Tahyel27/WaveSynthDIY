@@ -1,5 +1,6 @@
 #pragma once
 
+#include <PioHandler.hpp>
 #include <stdio.h>
 #include <array>
 #include <functional>
@@ -78,14 +79,7 @@ private:
     };
     Pins pins;
     
-    //we will have 1 PIO per device
-    struct PIOdata
-    {
-        PIO pio;
-        uint sm;
-        uint offset;
-    };
-    PIOdata pio;
+    PioHandler pio;
     
     //dma channel numbers
     uint dma_channel_buffer;
@@ -209,28 +203,6 @@ void IRQHandler::IRQ_handler_local()
     }
 }
 
-inline void AudioDevice::audio_device_program_init()
-{
-    pio_sm_config c = audio_device_program_get_default_config(pio.offset);
-
-    sm_config_set_clkdiv_int_frac8(&c, 13, 1); // setting up clock divisor
-    sm_config_set_out_pins(&c, pins.data, 1);        // maps the base out pin + pin count to our chosen pin
-    sm_config_set_sideset_pins(&c,  pins.lck);   // set the sideset pin base, automatically grabs enough pins
-    sm_config_set_out_shift(&c, false, true, 32);
-    sm_config_set_wrap(&c,pio.offset + audio_device_wrap_target, pio.offset + audio_device_wrap);
-
-    pio_gpio_init(pio.pio, pins.data);
-    pio_gpio_init(pio.pio, pins.lck);
-    pio_gpio_init(pio.pio, pins.lck + 1);
-
-    pio_sm_set_out_pins(pio.pio,pio.sm,pins.data,1);
-
-    pio_sm_set_consecutive_pindirs(pio.pio,pio.sm, pins.data,1, true);
-    pio_sm_set_consecutive_pindirs(pio.pio,pio.sm, pins.lck ,2, true);
-
-    pio_sm_init(pio.pio, pio.sm, pio.offset, &c);
-}
-
 inline void AudioDevice::arm_dma_channels_chained_irq()
 {
     dma_channel_config c_buffer = dma_channel_get_default_config(dma_channel_buffer);
@@ -238,14 +210,14 @@ inline void AudioDevice::arm_dma_channels_chained_irq()
     channel_config_set_read_increment(&c_buffer, true);
     channel_config_set_write_increment(&c_buffer, false);
     channel_config_set_transfer_data_size(&c_buffer, DMA_SIZE_32);
-    channel_config_set_dreq(&c_buffer, pio_get_dreq(pio.pio, pio.sm, true));
+    channel_config_set_dreq(&c_buffer, pio.get_dreq_tx());
 
     channel_config_set_chain_to(&c_buffer, dma_channel_control);
 
     dma_channel_configure(
         dma_channel_buffer,
         &c_buffer,
-        &pio.pio->txf[pio.sm],
+        pio.get_tx_fifo_addr(),
         buffer.A,
         BUFFSIZE,
         false
@@ -322,17 +294,24 @@ inline void AudioDevice::setSource(AudioSource *source_)
 
 inline bool AudioDevice::initialize()
 {
-    if(!pio_claim_free_sm_and_add_program(
-            &audio_device_program,
-            &pio.pio,
-            &pio.sm,
-            &pio.offset
-        ))
+    auto pio_handle = PioHandler::acquire(&audio_device_program, audio_device_program_get_default_config);
+
+    if (!pio_handle.has_value())
     {
         return false;
     }
+    
+    pio = std::move(pio_handle.value());
 
-    audio_device_program_init();
+    pio.set_clkdiv_int_frac8(13, 1);
+    pio.set_out_shift(false, true, 32);
+    pio.set_wrap(audio_device_wrap_target, audio_device_wrap);
+
+    pio.set_out_pins(pins.data);
+    pio.set_sideset_pins(pins.lck);
+    pio.set_sideset_out_pins(pins.lck + 1);
+
+    pio.init();
 
     init_buffers();
 
@@ -351,7 +330,7 @@ inline bool AudioDevice::initialize()
 
     dma_channel_start(dma_channel_buffer);
 
-    pio_sm_set_enabled(pio.pio ,pio.sm ,true);
+    pio.set_enabled(true);
 
     return true;
 }
