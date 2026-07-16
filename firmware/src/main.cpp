@@ -147,7 +147,7 @@ int main()
             },0);*/
 
             //printf("fcut: %f\n", (3.4 - v) / 3.4);
-            btnarr.poll();
+            /*btnarr.poll();
 
             auto b = btnarr.getEvent();
             while (b.has_value())
@@ -178,37 +178,37 @@ int main()
                 {
                     printf("RIGHT Encoder value: %d\n", ev.ID);
                 }
-            }
+            }*/
             
             HWProfiler::putLO();
-            /*timer++;
+            timer++;
 
             if (timer == 100)
             {
-                manager.release(1);
+                manager->release(1);
             }
 
             if (timer == 200)
             {
-                manager.playFrequency(200, 0, 1);
+                manager->playFrequency(200, 0, 1);
             }
 
             if (timer == 250)
             {
-                manager.playFrequency(400, 0, 2);
+                manager->playFrequency(400, 0, 2);
             }
 
             if (timer == 300)
             {
-                manager.release(1);
-                manager.release(2);
+                manager->release(1);
+                manager->release(2);
             }
 
             if (timer == 400)
             {
-                manager.playFrequency(100, 0, 1);
+                manager->playFrequency(100, 0, 1);
                 timer = 0;
-            }*/
+            }
         }
         
     }
