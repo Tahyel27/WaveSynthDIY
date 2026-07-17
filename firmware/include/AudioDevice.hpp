@@ -132,15 +132,6 @@ public: //public types
         RIGHT
     };
 
-    struct ChannelInfo
-    {
-        uint channel_num;
-        ChannelMode chmode;
-        uint64_t chunk;
-        uint64_t sample;
-        uint64_t SPS;
-    };
-
     struct DeviceInfo
     {
         uint64_t SPS;
@@ -154,7 +145,6 @@ private:
     //channel setup
     DeviceMode mode;
     //virtual channels
-    uint channel_num;
 
 //---------PRIVATE FUNCTIONS------------
     //init functions
@@ -169,11 +159,11 @@ private:
 
 public: //public methods
     AudioDevice();
-    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr);
+    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, IRQHandler * irq_h_ptr);
     ~AudioDevice();
 
     //factory functions
-    static AudioDevice createAudioDevice(uint dataPin, uint lckPin, DeviceMode mode, uint channels);
+    static AudioDevice claim(uint dataPin, uint lckPin, DeviceMode mode, uint channels);
 
     void setSource(AudioSource *source_);
 
@@ -266,12 +256,11 @@ AudioDevice::AudioDevice()
 
 }
 
-inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, uint channels, IRQHandler * irq_h_ptr)
+inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, IRQHandler * irq_h_ptr)
 {
     pins.data       =   dataPin;
     pins.lck        =    lckPin;
     mode            =     mode_;
-    channel_num     =  channels;
     IRQ_handler_ptr = irq_h_ptr;
     
     IRQ_handler_ptr->registerDevice(this, &AudioDevice::confirm_interrupt);
@@ -282,7 +271,7 @@ AudioDevice::~AudioDevice()
 
 }
 
-inline AudioDevice AudioDevice::createAudioDevice(uint dataPin, uint lckPin, DeviceMode mode, uint channels)
+inline AudioDevice AudioDevice::claim(uint dataPin, uint lckPin, DeviceMode mode, uint channels)
 {
     return AudioDevice();
 }
