@@ -1,6 +1,7 @@
 #pragma once
 
 #include <PioHandler.hpp>
+#include <DmaHandler.hpp>
 #include <stdio.h>
 #include <array>
 #include <functional>
@@ -82,8 +83,9 @@ private:
     PioHandler pio;
     
     //dma channel numbers
-    uint dma_channel_buffer;
-    uint dma_channel_control;
+
+    DmaHandler dma_buffer;
+    DmaHandler dma_control;
 
     //-----------------------------------
     //--------AUDIO BUFFERS AND CONTROLS---
@@ -156,7 +158,6 @@ private:
 
 //---------PRIVATE FUNCTIONS------------
     //init functions
-    inline void audio_device_program_init();
     inline void arm_dma_channels_chained_irq();
     void init_buffers();
 
@@ -205,40 +206,40 @@ void IRQHandler::IRQ_handler_local()
 
 inline void AudioDevice::arm_dma_channels_chained_irq()
 {
-    dma_channel_config c_buffer = dma_channel_get_default_config(dma_channel_buffer);
 
-    channel_config_set_read_increment(&c_buffer, true);
-    channel_config_set_write_increment(&c_buffer, false);
-    channel_config_set_transfer_data_size(&c_buffer, DMA_SIZE_32);
-    channel_config_set_dreq(&c_buffer, pio.get_dreq_tx());
+    auto conf_buffer = dma_buffer.get_default_config();
 
-    channel_config_set_chain_to(&c_buffer, dma_channel_control);
+    channel_config_set_read_increment(&conf_buffer, true);
+    channel_config_set_write_increment(&conf_buffer, false);
+    channel_config_set_transfer_data_size(&conf_buffer, DMA_SIZE_32);
+    channel_config_set_dreq(&conf_buffer, pio.get_dreq_tx());
 
-    dma_channel_configure(
-        dma_channel_buffer,
-        &c_buffer,
+    channel_config_set_chain_to(&conf_buffer, dma_control.get_channel());
+
+    dma_buffer.configure(
+        conf_buffer,
         pio.get_tx_fifo_addr(),
         buffer.A,
         BUFFSIZE,
         false
     );
 
-    dma_channel_config c_ctrl = dma_channel_get_default_config(dma_channel_control);
+    auto conf_control = dma_control.get_default_config();
 
-    channel_config_set_read_increment(&c_ctrl, false);
-    channel_config_set_write_increment(&c_ctrl, false);
-    channel_config_set_transfer_data_size(&c_ctrl, DMA_SIZE_32);
+    channel_config_set_read_increment(&conf_control, false);
+    channel_config_set_write_increment(&conf_control, false);
+    channel_config_set_transfer_data_size(&conf_control, DMA_SIZE_32);
 
-    dma_channel_configure(
-        dma_channel_control,
-        &c_ctrl,
-        &dma_hw->ch[dma_channel_buffer].al3_read_addr_trig,
+    dma_control.configure(
+        conf_control,
+        dma_buffer.get_al3_read_addr_trig_reg(),
         &buffer_start_pointer,
         1,
         false
     );
 
-    dma_channel_set_irq0_enabled(dma_channel_control, true);
+
+    dma_control.set_irq0_enabled(true);
 
     irq_set_exclusive_handler(DMA_IRQ_0, IRQHandler::IRQ_handler_static);
     irq_set_enabled(DMA_IRQ_0, true);
@@ -317,17 +318,18 @@ inline bool AudioDevice::initialize()
     //the DMA will start reading from buffer A, so we prepare buffer B
     buffer_start_pointer = buffer.C;
 
-    dma_channel_buffer  = dma_claim_unused_channel(false);
-    dma_channel_control = dma_claim_unused_channel(false);
+    auto dma_buf = DmaHandler::acquire();
+    auto dma_cont = DmaHandler::acquire();
+
+    if (!dma_buf.has_value()) return false;
+    if (!dma_cont.has_value()) return false;
     
-    if (dma_channel_buffer == -1 || dma_channel_control == -1)
-    {
-        return false;
-    }
+    dma_buffer = std::move(dma_buf.value());
+    dma_control = std::move(dma_cont.value());
 
     arm_dma_channels_chained_irq();
 
-    dma_channel_start(dma_channel_buffer);
+    dma_buffer.start();
 
     pio.set_enabled(true);
 
@@ -360,9 +362,8 @@ inline bool AudioDevice::update() //!!!!!!!!!!!!CLEAN UP BUFFER SWAPPING AND MAK
 
 inline bool AudioDevice::confirm_interrupt()
 {
-    if (dma_channel_get_irq0_status(dma_channel_control))
+    if (dma_control.check_irq0())
     {
-        dma_channel_acknowledge_irq0(dma_channel_control);
         buffer_update_flag = true;
         return true;
     }
