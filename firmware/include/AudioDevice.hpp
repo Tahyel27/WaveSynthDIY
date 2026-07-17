@@ -116,21 +116,10 @@ private:
     IRQHandler * IRQ_handler_ptr;
 
 public: //public types
-    enum class DeviceMode {
-        MONO,
-        STEREO
-    };
-
-    enum class ChannelMode {
-        MONO,
-        LEFT,
-        RIGHT
-    };
 
     struct DeviceInfo
     {
         uint64_t SPS;
-        DeviceMode mode;
         size_t buffsize;
         int maxamp;
     };
@@ -138,7 +127,6 @@ public: //public types
 
 private:
     //channel setup
-    DeviceMode mode;
     //virtual channels
 
 //---------PRIVATE FUNCTIONS------------
@@ -154,11 +142,11 @@ private:
 
 public: //public methods
     AudioDevice();
-    AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, IRQHandler * irq_h_ptr);
+    AudioDevice(uint dataPin, uint lckPin, IRQHandler * irq_h_ptr);
     ~AudioDevice();
 
     //factory functions
-    static AudioDevice claim(uint dataPin, uint lckPin, DeviceMode mode, uint channels);
+    static AudioDevice claim(uint dataPin, uint lckPin, uint channels);
 
     void setSource(AudioSource *source_);
 
@@ -170,11 +158,9 @@ public: //public methods
 
     bool confirm_interrupt();
 
-    void writeAudio(int i, int16_t value, ChannelMode mode);
-
     DeviceInfo getDeviceInfo()
     {
-        return DeviceInfo{SPS,mode,BUFFSIZE/2,maxamp};
+        return DeviceInfo{SPS,BUFFSIZE/2,maxamp};
     }
 };
 
@@ -251,11 +237,10 @@ AudioDevice::AudioDevice()
 
 }
 
-inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, DeviceMode mode_, IRQHandler * irq_h_ptr)
+inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, IRQHandler * irq_h_ptr)
 {
     pins.data       =   dataPin;
     pins.lck        =    lckPin;
-    mode            =     mode_;
     IRQ_handler_ptr = irq_h_ptr;
     
     IRQ_handler_ptr->registerDevice(this, &AudioDevice::confirm_interrupt);
@@ -266,7 +251,7 @@ AudioDevice::~AudioDevice()
 
 }
 
-inline AudioDevice AudioDevice::claim(uint dataPin, uint lckPin, DeviceMode mode, uint channels)
+inline AudioDevice AudioDevice::claim(uint dataPin, uint lckPin, uint channels)
 {
     return AudioDevice();
 }
@@ -352,22 +337,4 @@ inline bool AudioDevice::confirm_interrupt()
         return true;
     }
     return false;
-}
-
-inline void AudioDevice::writeAudio(int i, int16_t value, ChannelMode mode)
-{
-    if (mode == ChannelMode::LEFT)
-    {
-        buffer_ptrs.B[2*i] = int16_to_uint32(value);
-    }
-    else if (mode == ChannelMode::RIGHT)
-    {
-        buffer_ptrs.B[2*i + 1] = int16_to_uint32(value);
-    }
-    else
-    {
-        buffer_ptrs.B[2*i] = int16_to_uint32(value);
-        buffer_ptrs.B[2*i + 1] = int16_to_uint32(value);
-    }
-    
 }

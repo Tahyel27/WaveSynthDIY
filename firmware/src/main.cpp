@@ -54,7 +54,7 @@ int main()
     auto irqHandler = IRQHandler::getIRQHandler();
 
     //pin H has the lowest number button
-    auto device = AudioDevice(12,13,AudioDevice::DeviceMode::STEREO,irqHandler);
+    auto device = AudioDevice(12,13,irqHandler);
 
     //data 19, clk 20, latch 21
     auto btnarr = ButtonArray(19, 20, 21);
