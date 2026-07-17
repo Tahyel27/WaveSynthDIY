@@ -308,8 +308,7 @@ inline bool AudioDevice::initialize()
     pio.set_wrap(audio_device_wrap_target, audio_device_wrap);
 
     pio.set_out_pins(pins.data);
-    pio.set_sideset_pins(pins.lck);
-    pio.set_sideset_out_pins(pins.lck + 1);
+    pio.set_sideset_pins(pins.lck, 2, true);
 
     pio.init();
 
