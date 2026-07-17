@@ -31,31 +31,33 @@ public:
 class IRQHandler
 {
 private:
-    static IRQHandler * instance;
+    static IRQHandler *instance;
+    static constexpr int MAX_DEVICES = 8;
 
     IRQHandler()
     {
         instance = this;
-        n_devices = 0;
     }
 
-    std::array<std::function<bool(void)>, 16> callbacks;
-
-    int n_devices;
+    // Array size reduced to 8 as requested, representing our strict limit.
+    std::array<std::function<bool(void)>, MAX_DEVICES> callbacks;
 
     void IRQ_handler_local();
-public:
 
+public:
     IRQHandler(IRQHandler &handler_) = delete;
 
     void operator=(const IRQHandler &hanlder_) = delete;
 
     static void IRQ_handler_static()
     {
-        instance->IRQ_handler_local();
+        if (instance != nullptr)
+        {
+            instance->IRQ_handler_local();
+        }
     }
 
-    static IRQHandler * getIRQHandler()
+    static IRQHandler *getIRQHandler()
     {
         if (instance == nullptr)
         {
@@ -64,38 +66,60 @@ public:
         return instance;
     }
 
-    template<typename T>
+    template <typename T>
     IRQHandlerKey registerDevice(T *obj, bool (T::*func)(void))
     {
-        if (n_devices < 8)
+        // Find the first unoccupied slot
+        for (int i = 0; i < MAX_DEVICES; i++)
         {
-            callbacks[n_devices] = std::bind(func, obj);
-            n_devices++;
+            if (!callbacks[i]) // If the std::function is empty (nullptr)
+            {
+                callbacks[i] = std::bind(func, obj);
+                return IRQHandlerKey(i);
+            }
         }
 
-        return n_devices - 1; //returns the place in the array where the pointer was stored;
+        // Return an invalid key if no slots are available
+        return IRQHandlerKey(-1);
     }
 
-    template<typename T>
+    template <typename T>
     void modifyDevice(IRQHandlerKey key, T *obj, bool (T::*func)(void))
     {
-        callbacks[key.get_key()] = std::bind(func, obj);
+        int idx = key.get_key();
+        if (idx >= 0 && idx < MAX_DEVICES)
+        {
+            callbacks[idx] = std::bind(func, obj);
+        }
     }
 
-    //NEED TO PROPERLY IMPLEMENT REGISTERING AND UNREGISTERING!!!!
     void unregisterDevice(IRQHandlerKey key)
     {
         int idx = key.get_key();
-        if (idx >= 0 && idx < 16) // Ensure it's within bounds
+        if (idx >= 0 && idx < MAX_DEVICES)
         {
-            callbacks[idx] = nullptr; // Clear the callback
+            callbacks[idx] = nullptr; // Clear the callback, marking the slot as free
         }
     }
 };
 
+IRQHandler *IRQHandler::instance = nullptr;
 
+inline void IRQHandler::IRQ_handler_local()
+{
+    // Iterate through all slots, skipping empty ones
+    for (int i = 0; i < MAX_DEVICES; i++)
+    {
+        if (callbacks[i])
+        {
+            if (callbacks[i]()) // Execute callback; if it returns true, the interrupt is handled
+            {
+                break;
+            }
+        }
+    }
+}
 
-IRQHandler * IRQHandler::instance = nullptr;
 
 class AudioDeviceBuffers 
 {
@@ -267,17 +291,6 @@ public: //public methods
         return DeviceInfo{SPS,buffers->BUFFSIZE/2,maxamp};
     }
 };
-
-void IRQHandler::IRQ_handler_local()
-{
-    for (size_t i = 0; i < n_devices; i++)
-    {
-        if (callbacks[i]())
-        {
-            break;
-        }
-    }
-}
 
 inline void AudioDevice::arm_dma_channels_chained_irq()
 {
