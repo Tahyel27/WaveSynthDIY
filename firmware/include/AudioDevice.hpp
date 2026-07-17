@@ -90,12 +90,10 @@ private:
     //-----------------------------------
     //--------AUDIO BUFFERS AND CONTROLS---
     static const size_t BUFFSIZE = 1024;
-    struct Buffer    //MAYBE REMOVE
-    {
-        uint32_t A[BUFFSIZE];
-        uint32_t B[BUFFSIZE];
-        uint32_t C[BUFFSIZE];
-    };
+    
+    uint32_t buffer_A[BUFFSIZE];
+    uint32_t buffer_B[BUFFSIZE];
+    uint32_t buffer_C[BUFFSIZE];
 
     struct BufferPointers
     {
@@ -105,7 +103,6 @@ private:
     };
     BufferPointers buffer_ptrs;
     //!!!!!!!!!!VARIABLE BUFFER SIZE
-    Buffer buffer;
     uint32_t *buffer_start_pointer; //we will provide this to the DMA
 
     volatile bool buffer_update_flag = false;
@@ -207,7 +204,7 @@ inline void AudioDevice::arm_dma_channels_chained_irq()
     dma_buffer.configure(
         conf_buffer,
         pio.get_tx_fifo_addr(),
-        buffer.A,
+        buffer_A,
         BUFFSIZE,
         false
     );
@@ -238,14 +235,14 @@ inline void AudioDevice::init_buffers()
 {
     for (size_t i = 0; i < BUFFSIZE; i++)
     {
-        buffer.A[i] = 0;
-        buffer.B[i] = 0;
-        buffer.C[i] = 0;
+        buffer_A[i] = 0;
+        buffer_B[i] = 0;
+        buffer_C[i] = 0;
     }
 
-    buffer_ptrs.A = buffer.A;
-    buffer_ptrs.B = buffer.B;
-    buffer_ptrs.C = buffer.C;
+    buffer_ptrs.A = buffer_A;
+    buffer_ptrs.B = buffer_B;
+    buffer_ptrs.C = buffer_C;
     
 }
 
@@ -303,7 +300,7 @@ inline bool AudioDevice::initialize()
     init_buffers();
 
     //the DMA will start reading from buffer A, so we prepare buffer B
-    buffer_start_pointer = buffer.C;
+    buffer_start_pointer = buffer_C;
 
     auto dma_buf = DmaHandler::acquire();
     auto dma_cont = DmaHandler::acquire();
