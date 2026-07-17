@@ -257,9 +257,6 @@ public: //public methods
 
     void setSource(AudioSource *source_);
 
-    //public init, returns true uppon successful initialization
-    bool initialize();
-
     //update audio device, returns true if an update has been performed
     bool update();
 
