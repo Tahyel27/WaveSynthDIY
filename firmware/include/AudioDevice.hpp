@@ -110,8 +110,6 @@ private:
 
     volatile bool buffer_update_flag = false;
 
-    uint64_t chunkcount = 0; //number of audio buffers outputted from this device
-
     const uint64_t SPS = 45045;
     const int maxamp = 32767 / 2.5;
 
