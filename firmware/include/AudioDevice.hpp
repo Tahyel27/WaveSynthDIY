@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <PioHandler.hpp>
 #include <DmaHandler.hpp>
 #include <stdio.h>
@@ -16,6 +17,16 @@
 #include "audio_device.pio.h"
 
 class AudioDevice;
+
+class IRQHandlerKey
+{
+    int key = -1;
+
+public:
+    IRQHandlerKey() {};
+    IRQHandlerKey(int key_) : key(key_) {};
+    int get_key() { return key; };
+};
 
 class IRQHandler
 {
@@ -54,99 +65,195 @@ public:
     }
 
     template<typename T>
-    void registerDevice(T *obj, bool (T::*func)(void))
+    IRQHandlerKey registerDevice(T *obj, bool (T::*func)(void))
     {
         if (n_devices < 8)
         {
             callbacks[n_devices] = std::bind(func, obj);
             n_devices++;
         }
+
+        return n_devices - 1; //returns the place in the array where the pointer was stored;
     }
 
+    template<typename T>
+    void modifyDevice(IRQHandlerKey key, T *obj, bool (T::*func)(void))
+    {
+        callbacks[key.get_key()] = std::bind(func, obj);
+    }
+
+    //NEED TO PROPERLY IMPLEMENT REGISTERING AND UNREGISTERING!!!!
+    void unregisterDevice(IRQHandlerKey key)
+    {
+        int idx = key.get_key();
+        if (idx >= 0 && idx < 16) // Ensure it's within bounds
+        {
+            callbacks[idx] = nullptr; // Clear the callback
+        }
+    }
 };
 
+
+
 IRQHandler * IRQHandler::instance = nullptr;
+
+class AudioDeviceBuffers 
+{
+    static const size_t BUFFSIZE = 1024;
+
+    bool in_use = false;
+    
+    uint32_t A[BUFFSIZE];
+    uint32_t B[BUFFSIZE];
+    uint32_t C[BUFFSIZE];
+
+    uint32_t *ptr_A;
+    uint32_t *ptr_B;
+    uint32_t *ptr_C;
+
+    uint32_t *buffer_start_pointer;
+
+    friend class AudioDevice;
+};
 
 class AudioDevice
 {
 private:
-    //----------HARDWARE DATA--------------
-
-    struct Pins
-    {
-        uint data;
-        uint lck;
-        //bck is lck+1
-    };
-    Pins pins;
     
     PioHandler pio;
-    
-    //dma channel numbers
 
     DmaHandler dma_buffer;
     DmaHandler dma_control;
-
-    //-----------------------------------
-    //--------AUDIO BUFFERS AND CONTROLS---
-    static const size_t BUFFSIZE = 1024;
     
-    uint32_t buffer_A[BUFFSIZE];
-    uint32_t buffer_B[BUFFSIZE];
-    uint32_t buffer_C[BUFFSIZE];
-
-    struct BufferPointers
-    {
-        uint32_t* A;
-        uint32_t* B;
-        uint32_t* C;
-    };
-    BufferPointers buffer_ptrs;
-    //!!!!!!!!!!VARIABLE BUFFER SIZE
-    uint32_t *buffer_start_pointer; //we will provide this to the DMA
+    AudioDeviceBuffers * buffers;
 
     volatile bool buffer_update_flag = false;
 
     const uint64_t SPS = 45045;
     const int maxamp = 32767 / 2.5;
 
-    AudioSource * source;
-    bool useCallback = false;
-    //------------INTERRUPT HANDLER---------
+    AudioSource * source = nullptr;
+
     IRQHandler * IRQ_handler_ptr;
+    IRQHandlerKey irq_key;
 
-public: //public types
 
+    inline void arm_dma_channels_chained_irq();
+    void init_buffers();
+
+public: //public methods
     struct DeviceInfo
     {
         uint64_t SPS;
         size_t buffsize;
         int maxamp;
     };
-    
 
-private:
-    //channel setup
-    //virtual channels
+    AudioDevice();
 
-//---------PRIVATE FUNCTIONS------------
-    //init functions
-    inline void arm_dma_channels_chained_irq();
-    void init_buffers();
-
-    //utility
-
-    inline uint32_t int16_to_uint32(int16_t val){
-        return val << 16;
+    AudioDevice(AudioDevice&& other) noexcept 
+        : pio(std::move(other.pio)), dma_buffer(std::move(other.dma_buffer)), dma_control(std::move(other.dma_control))
+    {
+        buffers = other.buffers;
+        other.buffers = nullptr;
+        buffer_update_flag = other.buffer_update_flag;
+        other.buffer_update_flag = false;
+        IRQ_handler_ptr = other.IRQ_handler_ptr;
+        irq_key = other.irq_key;
+        other.irq_key = IRQHandlerKey();
+        IRQ_handler_ptr->modifyDevice(irq_key, this, &AudioDevice::confirm_interrupt);
+        source = other.source;
+        other.source = nullptr;
     }
 
-public: //public methods
-    AudioDevice();
-    AudioDevice(uint dataPin, uint lckPin, IRQHandler * irq_h_ptr);
-    ~AudioDevice();
+    ~AudioDevice() 
+    {
+        buffers->in_use = false;
+        if (IRQ_handler_ptr && irq_key.get_key() != -1)
+        {
+            IRQ_handler_ptr->unregisterDevice(irq_key);
+        }
+    }
+
+    AudioDevice& operator=(AudioDevice&& other) noexcept 
+    {
+        if (this != &other) 
+        {
+            pio = std::move(other.pio);
+            dma_buffer = std::move(other.dma_buffer);
+            dma_control = std::move(other.dma_control);
+
+            buffers = other.buffers;
+            other.buffers = nullptr;
+            buffer_update_flag = other.buffer_update_flag;
+            other.buffer_update_flag = false;
+            source = other.source;
+            other.source = nullptr;
+            IRQ_handler_ptr = other.IRQ_handler_ptr;
+            irq_key = other.irq_key;
+            other.irq_key = IRQHandlerKey();
+            if (IRQ_handler_ptr && irq_key.get_key() != -1)
+            {
+                IRQ_handler_ptr->modifyDevice(irq_key, this, &AudioDevice::confirm_interrupt);
+            }
+        }
+
+        return *this;
+    }
+
+
+
 
     //factory functions
-    static AudioDevice claim(uint dataPin, uint lckPin, uint channels);
+    static std::optional<AudioDevice> claim(uint dataPin, uint lckPin, AudioDeviceBuffers * buffers, IRQHandler * irq_handler_ptr)
+    {
+        AudioDevice device;
+
+        device.buffers = buffers;
+
+        auto pio_handle = PioHandler::acquire(&audio_device_program, audio_device_program_get_default_config); //acquire a RAII PIO SM
+
+        if (!pio_handle.has_value())
+        {
+            return std::nullopt;
+        }
+
+        device.IRQ_handler_ptr = irq_handler_ptr;
+        device.irq_key = device.IRQ_handler_ptr->registerDevice(&device, &AudioDevice::confirm_interrupt);
+
+        device.pio = std::move(pio_handle.value());
+
+        device.pio.set_clkdiv_int_frac8(13, 1); //corresponds to the sample rate of 45khz
+        device.pio.set_out_shift(false, true, 32); 
+        device.pio.set_wrap(audio_device_wrap_target, audio_device_wrap);
+
+        device.pio.set_out_pins(dataPin);
+        device.pio.set_sideset_pins(lckPin, 2, true); //two sideset pins need, one for latch and one for clock (latch + 1)
+
+        device.pio.init();
+
+        auto dma_buf = DmaHandler::acquire(); 
+        auto dma_cont = DmaHandler::acquire();
+
+        if (!dma_buf.has_value())
+            return std::nullopt;
+        if (!dma_cont.has_value())
+            return std::nullopt;
+
+        device.dma_buffer = std::move(dma_buf.value());
+        device.dma_control = std::move(dma_cont.value());
+
+        device.arm_dma_channels_chained_irq();
+
+        device.init_buffers();
+
+        device.buffers->buffer_start_pointer = device.buffers->C;
+
+        device.dma_buffer.start();
+        device.pio.set_enabled(true);
+
+        return device;
+    }
 
     void setSource(AudioSource *source_);
 
@@ -160,7 +267,7 @@ public: //public methods
 
     DeviceInfo getDeviceInfo()
     {
-        return DeviceInfo{SPS,BUFFSIZE/2,maxamp};
+        return DeviceInfo{SPS,buffers->BUFFSIZE/2,maxamp};
     }
 };
 
@@ -190,8 +297,8 @@ inline void AudioDevice::arm_dma_channels_chained_irq()
     dma_buffer.configure(
         conf_buffer,
         pio.get_tx_fifo_addr(),
-        buffer_A,
-        BUFFSIZE,
+        buffers->A,
+        buffers->BUFFSIZE,
         false
     );
 
@@ -204,7 +311,7 @@ inline void AudioDevice::arm_dma_channels_chained_irq()
     dma_control.configure(
         conf_control,
         dma_buffer.get_al3_read_addr_trig_reg(),
-        &buffer_start_pointer,
+        &buffers->buffer_start_pointer,
         1,
         false
     );
@@ -219,16 +326,16 @@ inline void AudioDevice::arm_dma_channels_chained_irq()
 
 inline void AudioDevice::init_buffers()
 {
-    for (size_t i = 0; i < BUFFSIZE; i++)
+    for (size_t i = 0; i < buffers->BUFFSIZE; i++)
     {
-        buffer_A[i] = 0;
-        buffer_B[i] = 0;
-        buffer_C[i] = 0;
+        buffers->A[i] = 0;
+        buffers->B[i] = 0;
+        buffers->C[i] = 0;
     }
 
-    buffer_ptrs.A = buffer_A;
-    buffer_ptrs.B = buffer_B;
-    buffer_ptrs.C = buffer_C;
+    buffers->ptr_A = buffers->A;
+    buffers->ptr_B= buffers->B;
+    buffers->ptr_C = buffers->C;
     
 }
 
@@ -237,72 +344,9 @@ AudioDevice::AudioDevice()
 
 }
 
-inline AudioDevice::AudioDevice(uint dataPin, uint lckPin, IRQHandler * irq_h_ptr)
-{
-    pins.data       =   dataPin;
-    pins.lck        =    lckPin;
-    IRQ_handler_ptr = irq_h_ptr;
-    
-    IRQ_handler_ptr->registerDevice(this, &AudioDevice::confirm_interrupt);
-}
-
-AudioDevice::~AudioDevice()
-{
-
-}
-
-inline AudioDevice AudioDevice::claim(uint dataPin, uint lckPin, uint channels)
-{
-    return AudioDevice();
-}
-
 inline void AudioDevice::setSource(AudioSource *source_)
 {
     source = source_;
-    useCallback = true;
-}
-
-inline bool AudioDevice::initialize()
-{
-    auto pio_handle = PioHandler::acquire(&audio_device_program, audio_device_program_get_default_config);
-
-    if (!pio_handle.has_value())
-    {
-        return false;
-    }
-    
-    pio = std::move(pio_handle.value());
-
-    pio.set_clkdiv_int_frac8(13, 1);
-    pio.set_out_shift(false, true, 32);
-    pio.set_wrap(audio_device_wrap_target, audio_device_wrap);
-
-    pio.set_out_pins(pins.data);
-    pio.set_sideset_pins(pins.lck, 2, true);
-
-    pio.init();
-
-    init_buffers();
-
-    //the DMA will start reading from buffer A, so we prepare buffer B
-    buffer_start_pointer = buffer_C;
-
-    auto dma_buf = DmaHandler::acquire();
-    auto dma_cont = DmaHandler::acquire();
-
-    if (!dma_buf.has_value()) return false;
-    if (!dma_cont.has_value()) return false;
-    
-    dma_buffer = std::move(dma_buf.value());
-    dma_control = std::move(dma_cont.value());
-
-    arm_dma_channels_chained_irq();
-
-    dma_buffer.start();
-
-    pio.set_enabled(true);
-
-    return true;
 }
 
 inline bool AudioDevice::update() //!!!!!!!!!!!!CLEAN UP BUFFER SWAPPING AND MAKE ONLY TWO BUFFERS!!!!!!
@@ -310,18 +354,18 @@ inline bool AudioDevice::update() //!!!!!!!!!!!!CLEAN UP BUFFER SWAPPING AND MAK
     if (buffer_update_flag)
     {
         // Since we start with buffer A loaded into the dma we should load in buffer C as second and D as third, so C is always the next buffer
-        uint32_t *tmp_ptr = buffer_ptrs.C;
-        buffer_ptrs.C = buffer_ptrs.B;
-        buffer_ptrs.B = buffer_ptrs.A;
-        buffer_ptrs.A = tmp_ptr;
+        uint32_t *tmp_ptr = buffers->ptr_C;
+        buffers->ptr_C = buffers->ptr_B;
+        buffers->ptr_B = buffers->ptr_A;
+        buffers->ptr_A = tmp_ptr;
 
-        buffer_start_pointer = buffer_ptrs.C;
+        buffers->buffer_start_pointer = buffers->ptr_C;
 
         buffer_update_flag = false;
 
-        if (useCallback)
+        if (source != nullptr)
         {
-            source->audioCallback(AudioBuffer{buffer_ptrs.B, BUFFSIZE/2, SPS, maxamp});
+            source->audioCallback(AudioBuffer{buffers->ptr_B, buffers->BUFFSIZE/2, SPS, maxamp});
         }
 
         return true;

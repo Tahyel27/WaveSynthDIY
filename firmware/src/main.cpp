@@ -51,10 +51,16 @@ int main()
 
     HWProfiler::init();
 
+    auto buffers = AudioDeviceBuffers();
+
     auto irqHandler = IRQHandler::getIRQHandler();
 
     //pin H has the lowest number button
-    auto device = AudioDevice(12,13,irqHandler);
+    auto device_opt = AudioDevice::claim(12, 13, &buffers, irqHandler);
+    if (!device_opt.has_value()) return -1;
+
+    auto device = std::move(device_opt.value());
+    
 
     //data 19, clk 20, latch 21
     auto btnarr = ButtonArray(19, 20, 21);
@@ -88,7 +94,6 @@ int main()
 
     printf("start device init\n");
 
-    device.initialize();
 
     int timer = 0;
 
