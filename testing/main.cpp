@@ -39,7 +39,9 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
 
 int main() {
     std::cout << "Initializing Synth Engine...\n";
-    SynthEngine engine;
+
+    BufferPool pool;
+    SynthEngine engine(&pool);
     
     // Set up a custom continuous patch to fix firmware bugs (unison=0, unhandled ADSR SUSTAIN)
     Data data;

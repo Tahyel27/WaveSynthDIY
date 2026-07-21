@@ -16,7 +16,7 @@ namespace Synth
 class SynthEngine : public AudioSource
 {
 private:
-    BufferPool bufferPool;    
+    BufferPool * bufferPool;    
 
     NodeOrder nodeOrder;
 
@@ -34,6 +34,7 @@ private:
 
  public:
     SynthEngine(/* args */);
+    SynthEngine(BufferPool * pool) : bufferPool(pool) {};
     ~SynthEngine(){};
 
     void loadData(const Data &data_);
