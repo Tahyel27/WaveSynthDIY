@@ -34,13 +34,13 @@ class SynthEngine : public AudioSource
 private:
     BufferPool bufferPool;    
 
-    std::array<NodeOrder, VOICE_COUNT> nodeOrderArray;
+    NodeOrder nodeOrder;
 
     int nodeCount = 0;
 
-    std::array<Data, VOICE_COUNT> voiceData;
+    Data data;
 
-    VoiceBuffers voiceOutputs;
+    std::array<float_t, BUFFER_SIZE> output_buffer;
 
     std::bitset<VOICE_COUNT> activeVoices;
 
@@ -51,7 +51,7 @@ private:
 
     void processGraph();
 
-    void processChunk(int chunk, int voice);
+    void processChunk(int chunk);
 
  public:
     SynthEngine(/* args */);
@@ -80,7 +80,7 @@ private:
 
 inline Data &Synth::SynthEngine::getDataRef(int voice)
 {
-    return voiceData[voice];
+    return data;
 }
 
 }
