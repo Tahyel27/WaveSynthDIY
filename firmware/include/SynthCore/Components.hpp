@@ -2,10 +2,42 @@
 
 #include <array>
 #include <algorithm>
+#include <variant>
 #include "SynthCore/Common.hpp"
 
 namespace Synth
 {
+    enum class OpCode : uint8_t 
+    {
+        ADD,
+        MIX,
+        WTOSC,
+        SINEOSC,
+        AMPL,
+        ADSR,
+        SVFILTLP
+    };
+
+    struct Instruction 
+    {
+        OpCode operation;
+        Operand op1;
+        Operand op2;
+        Operand op3;
+        Operand op4;
+        Operand op5;
+    };
+
+    enum class ADSRState : uint8_t 
+    {
+        IDLE,
+        ATTACK,
+        DECAY,
+        SUSTAIN,
+        RELEASE
+    };
+
+    using VariantType = std::variant<float_t, int, ADSRState>;
 
     struct ModInput
     {

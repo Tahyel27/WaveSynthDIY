@@ -20,6 +20,8 @@ namespace Synth
     constexpr int SPS = 45045;
     constexpr float dt = 1 / static_cast<float>(SPS);
 
+    using ScalarRegister = std::array<float_t, REGISTER_SIZE>;
+
     class BufferPool
     {
     private:
@@ -118,5 +120,27 @@ namespace Synth
             return ShortBufferView(&data[ID*2], &data[ID*2 + 1]);
         }
     };
+
+    enum class OperandType : uint8_t 
+    {
+        SCALAR_REG,
+        SHORTBUF_REG,
+        BUFFER_REG,
+        EXT_REG,
+        VARIANT_REG,
+        IMMEDIATE
+    };
+
+    struct Operand 
+    {
+        OperandType type;
+        union 
+        {
+            uint16_t reg_index;
+            float value;
+        };
+    };
+
+    
 
 } // namespace Synth

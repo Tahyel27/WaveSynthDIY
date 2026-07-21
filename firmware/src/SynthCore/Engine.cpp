@@ -45,7 +45,7 @@ void Synth::SynthEngine::processGraph()
 
 void Synth::SynthEngine::processChunk(int chunk)
 {
-    bufferPool->wipeBuffers();
+    ctx.bufferPool->wipeBuffers();
     //we iterate over the operations in the queue
     for (size_t i = 0; i < nodeOrder.nodeCount; i++)
     {
@@ -55,14 +55,14 @@ void Synth::SynthEngine::processChunk(int chunk)
         float_t * outbuffer;
         if (nodeOrder.data[i].outputBuffer != -1)
         {
-            outbuffer = bufferPool->getBuffer(nodeOrder.data[i].outputBuffer);
+            outbuffer = ctx.bufferPool->getBuffer(nodeOrder.data[i].outputBuffer);
         }
         else
         {
             outbuffer = &output_buffer[CHUNK_SIZE * chunk];
         }
         
-        processNode(nodeOrder.data[i].type, nodeOrder.data[i].dataIndex, data, outbuffer, bufferPool);
+        processNode(nodeOrder.data[i].type, nodeOrder.data[i].dataIndex, data, outbuffer, ctx.bufferPool);
     }
     
 }

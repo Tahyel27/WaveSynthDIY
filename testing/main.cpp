@@ -41,7 +41,9 @@ int main() {
     std::cout << "Initializing Synth Engine...\n";
 
     BufferPool pool;
-    SynthEngine engine(&pool);
+    ShortBufferPool short_pool;
+    ScalarRegister ext_reg;
+    SynthEngine engine(&pool, &short_pool, &ext_reg);
     
     // Set up a custom continuous patch to fix firmware bugs (unison=0, unhandled ADSR SUSTAIN)
     Data data;

@@ -12,11 +12,21 @@
 namespace Synth
 {
 
+struct Context
+{
+    std::array<VariantType, REGISTER_SIZE> variant_reg;
+    std::array<float_t, REGISTER_SIZE> scalar_reg;
+
+    ShortBufferPool *short_buf_pool;
+    BufferPool *bufferPool;
+    ScalarRegister *external_register;
+};
 
 class SynthEngine : public AudioSource
 {
 private:
-    BufferPool * bufferPool;    
+
+    Context ctx;
 
     NodeOrder nodeOrder;
 
@@ -34,7 +44,12 @@ private:
 
  public:
     SynthEngine(/* args */);
-    SynthEngine(BufferPool * pool) : bufferPool(pool) {};
+    SynthEngine(BufferPool * pool, ShortBufferPool * short_pool ,ScalarRegister * ext_reg)
+    {
+        ctx.bufferPool = pool;
+        ctx.short_buf_pool = short_pool;
+        ctx.external_register = ext_reg;
+    }
     ~SynthEngine(){};
 
     void loadData(const Data &data_);
