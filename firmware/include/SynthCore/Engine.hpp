@@ -44,9 +44,6 @@ private:
 
     std::bitset<VOICE_COUNT> activeVoices;
 
-    DelayData delayLine;
-    bool useDelay = false;
-
     void outputFromVoices(AudioBuffer buffer);
 
     void processGraph();
@@ -70,8 +67,6 @@ private:
     void stopVoice(int voice);
 
     bool isVoiceActive(int voice);
-
-    void setDelay(bool state);
 
     void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);
 

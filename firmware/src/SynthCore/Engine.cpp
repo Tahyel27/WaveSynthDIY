@@ -60,11 +60,6 @@ bool Synth::SynthEngine::isVoiceActive(int voice)
     return activeVoices[voice];
 }
 
-void Synth::SynthEngine::setDelay(bool state)
-{
-    useDelay = state;
-}
-
 void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
 {
     float_t gain = 1.0f / sqrtf(static_cast<float>(activeVoices.count()));
@@ -80,11 +75,6 @@ void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
                 tmp[j] += gain * output[j];
             }
         }
-    }
-
-    if (useDelay)
-    {
-        globalDelay(&delayLine, tmp.begin(), tmp.begin(), tmp.size());
     }
 
     for (size_t i = 0; i < buffer.buffsize; i++)
@@ -128,5 +118,5 @@ void Synth::SynthEngine::processChunk(int chunk)
 
 Synth::SynthEngine::SynthEngine()
 {
-    std::fill_n(delayLine.delayLine.begin(), delayLine.LENGTH, 0.0f);
+    
 }
