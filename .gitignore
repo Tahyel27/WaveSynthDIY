@@ -1,4 +1,5 @@
 **/build
+**/build_msys4
 **/.vscode
 **/*.lck
 **/button_registers-backups
