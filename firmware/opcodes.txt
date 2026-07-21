@@ -1,0 +1,6 @@
+list of opcodes for the processor:
+WTOSC, reg: freq, reg: phi1, reg: phi2, reg: phi3, reg: phasedist, reg: morph, vreg_int: unison, reg: detune, reg: out
+AMPL, reg: signal, reg: gain, reg: out
+SINEOSC, reg: freq, reg: phasedist
+ADSR, reg: signal, vreg_adsr: state, reg: time, reg: out
+SVFILT, reg: z1, reg: z2, reg: signal, reg: out

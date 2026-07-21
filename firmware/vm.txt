@@ -1,0 +1,19 @@
+the general vm structure
+registers:
+scalar_reg
+pers---------------------------- 
+^ these cannot be shared between engines
+shortbuf_reg
+------------------   is connected to a pool
+^these can be shared between engines
+buff_reg 
+------------------    is connected to a pool - 0 is the output register
+^these can be shared between engines
+ext_reg
+ext----------------------
+is shared between engines and stores external modulation
+
+ - this is a special type of register in the instructions
+variant_reg
+pers------------ contains a variant for more complicated things, like adsr, int, 
+or more enums, is local
