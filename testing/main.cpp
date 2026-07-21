@@ -60,8 +60,8 @@ int main() {
     order.data[0].dataIndex = 0;
     order.data[0].outputBuffer = -1; // -1 routes directly to the voice output
 
-    engine.loadVoiceData(data, order, 0);
-    engine.startVoice(0);
+    engine.loadData(data);
+    engine.loadOrdering(order);
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();

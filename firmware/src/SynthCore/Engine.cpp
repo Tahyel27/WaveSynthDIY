@@ -7,7 +7,7 @@ void SynthEngine::audioCallback(AudioBuffer Buffer)
 {    
     processGraph();
     
-    outputFromVoices(Buffer);
+    output(Buffer);
 }
 
 void SynthEngine::loadData(const Data &data_)
@@ -15,21 +15,9 @@ void SynthEngine::loadData(const Data &data_)
     data = data_;
 };
 
-void Synth::SynthEngine::loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes)
+void Synth::SynthEngine::loadOrdering(const NodeOrder &order)
 {
-    nodeOrder.data = ordering;
-    nodeCount = nodes;
-}
-
-void Synth::SynthEngine::loadVoiceData(const Synth::Data &data_, const Synth::NodeOrder &order_, int voice)
-{
-    if (voice >= VOICE_COUNT)
-    {
-        return;
-    }
-
-    data = data_;
-    nodeOrder = order_;
+    nodeOrder = order;
 }
 
 std::tuple<Data &, NodeOrder &> Synth::SynthEngine::getDataForVoiceRef(int voice)
@@ -37,49 +25,12 @@ std::tuple<Data &, NodeOrder &> Synth::SynthEngine::getDataForVoiceRef(int voice
     return std::tuple<Data &, NodeOrder &>(data,nodeOrder);
 }
 
-void Synth::SynthEngine::startVoice(int voice)
-{
-    if (voice >= VOICE_COUNT)
-    {
-        return;
-    }
-    activeVoices[voice] = true;
-}
 
-void Synth::SynthEngine::stopVoice(int voice)
+void Synth::SynthEngine::output(AudioBuffer buffer)
 {
-    if (voice >= VOICE_COUNT)
-    {
-        return;
-    }
-    activeVoices[voice] = false;
-}
-
-bool Synth::SynthEngine::isVoiceActive(int voice)
-{
-    return activeVoices[voice];
-}
-
-void Synth::SynthEngine::outputFromVoices(AudioBuffer buffer)
-{
-    float_t gain = 1.0f / sqrtf(static_cast<float>(activeVoices.count()));
-    
-    std::array<float, BUFFER_SIZE> tmp{};
-    for (size_t i = 0; i < VOICE_COUNT; i++)
-    {
-        if (activeVoices[i])
-        {
-            float_t * output = output_buffer.data();
-            for (size_t j = 0; j < BUFFER_SIZE; j++)
-            {
-                tmp[j] += gain * output[j];
-            }
-        }
-    }
-
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
-        buffer.write16bit(i, static_cast<int16_t>(maxamp*tmp[i]), AudioBuffer::Mode::MONO);
+        buffer.write16bit(i, static_cast<int16_t>(maxamp*output_buffer[i]), AudioBuffer::Mode::MONO);
     }
 }
 
@@ -118,5 +69,5 @@ void Synth::SynthEngine::processChunk(int chunk)
 
 Synth::SynthEngine::SynthEngine()
 {
-    
+
 }

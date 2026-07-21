@@ -11,22 +11,6 @@
 
 namespace Synth
 {
-    
-struct VoiceBuffers
-{
-    std::array<float_t, BUFFER_SIZE*VOICE_COUNT> data;
-
-    inline float_t * get(int voice)
-    {
-        return &data[BUFFER_SIZE * voice];
-    }
-
-    VoiceBuffers()
-    {
-        std::fill_n(data.begin(), data.size(), 0.00);
-    }
-};
-
 
 
 class SynthEngine : public AudioSource
@@ -42,9 +26,7 @@ private:
 
     std::array<float_t, BUFFER_SIZE> output_buffer;
 
-    std::bitset<VOICE_COUNT> activeVoices;
-
-    void outputFromVoices(AudioBuffer buffer);
+    void output(AudioBuffer buffer);
 
     void processGraph();
 
@@ -56,19 +38,11 @@ private:
 
     void loadData(const Data &data_);
 
-    void loadVoiceData(const Data &data_, const NodeOrder &order_, int voice);
-
     std::tuple<Data&, NodeOrder&> getDataForVoiceRef(int voice);
 
     inline Data& getDataRef(int voice);
 
-    void startVoice(int voice);
-
-    void stopVoice(int voice);
-
-    bool isVoiceActive(int voice);
-
-    void loadOrdering(const std::array<Node, MAX_GRAPH_NODES> &ordering, int nodes);
+    void loadOrdering(const NodeOrder &order);
 
     virtual void audioCallback(AudioBuffer Buffer) override;
 };
