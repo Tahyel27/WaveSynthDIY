@@ -84,4 +84,39 @@ namespace Synth
         return pool->getBuffer(bufferID);
     }
 
+    //a short buffer consisting of only two values
+    class ShortBufferView
+    {
+        float_t * m_first;
+        float_t * m_second;
+    public:
+        ShortBufferView(float_t * first, float_t * second) : m_first(first), m_second(second) {};
+
+        float_t & first() 
+        {
+            return *m_first;
+        }
+
+        float_t & second()
+        {
+            return *m_second;
+        }
+    };
+
+    // a pool of buffers consisting of only two floating point values, used for low frequency modulation to save perf
+    class ShortBufferPool 
+    {
+        alignas(32) std::array<float_t, REGISTER_SIZE * 2> data;
+    public:
+        ShortBufferPool() 
+        {
+            std::fill(data.begin(), data.end(), 0.0);
+        }
+
+        ShortBufferView getBuffer(int ID) 
+        {
+            return ShortBufferView(&data[ID*2], &data[ID*2 + 1]);
+        }
+    };
+
 } // namespace Synth
