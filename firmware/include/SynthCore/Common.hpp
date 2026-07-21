@@ -15,6 +15,7 @@ namespace Synth
     constexpr int VOICE_COUNT = 6;
     constexpr int MAX_GRAPH_NODES = 20;
     constexpr int maxamp = 32767 / 2.5;
+    constexpr size_t REGISTER_SIZE = 25;
 
     constexpr int SPS = 45045;
     constexpr float dt = 1 / static_cast<float>(SPS);
@@ -22,11 +23,10 @@ namespace Synth
     class BufferPool
     {
     private:
-        static constexpr size_t BUFFER_COUNT = 25;
 
-        alignas(32) std::array<float_t, CHUNK_SIZE * BUFFER_COUNT> memory_pool;
+        alignas(32) std::array<float_t, CHUNK_SIZE * REGISTER_SIZE> memory_pool;
 
-        std::bitset<BUFFER_COUNT> claimed_buffers;
+        std::bitset<REGISTER_SIZE> claimed_buffers;
 
     public:
         BufferPool(/* args */) 
@@ -43,7 +43,7 @@ namespace Synth
 
         int claimBuffer()
         {
-            for (int i = 0; i < BUFFER_COUNT; i++)
+            for (int i = 0; i < REGISTER_SIZE; i++)
             {
                 if (!claimed_buffers[i])
                 {
@@ -62,7 +62,7 @@ namespace Synth
 
         void wipeBuffers()
         {
-            std::fill_n(memory_pool.begin(), BUFFER_COUNT * CHUNK_SIZE, 0);
+            std::fill_n(memory_pool.begin(), REGISTER_SIZE * CHUNK_SIZE, 0);
         }
 
         void wipeAndFreeBuffers()
@@ -71,7 +71,7 @@ namespace Synth
             claimed_buffers.reset();
         }
 
-        static size_t getSize() { return BUFFER_COUNT; };
+        static size_t getSize() { return REGISTER_SIZE; };
     };
 
     inline float_t * prepareInBuffer(int bufferID, float_t v, BufferPool * pool, float_t * scratch)
