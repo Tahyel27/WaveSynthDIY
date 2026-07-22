@@ -104,7 +104,7 @@ namespace Synth
     public:
         ShortBufferView(float_t * first, float_t * second) : m_first(first), m_second(second), m_current(*first) {
             constexpr float_t increment = 1. / static_cast<float_t>(CHUNK_SIZE);
-            m_increment = increment * (m_second - m_first);
+            m_increment = increment * (*m_second - *m_first);
         };
 
         float_t & first() 
