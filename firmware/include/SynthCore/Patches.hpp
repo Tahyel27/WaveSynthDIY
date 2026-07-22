@@ -4,214 +4,111 @@
 
 namespace Synth
 {
-    void createSimpleWTPatch(Data &data, NodeOrder &order, int wtindex)
-    {
-        order.nodeCount = 1;
-        
-        WTOscData osc;
-        osc.wtIndex = wtindex;
-        osc.unison = 0;
-        osc.detune = ModInput{-1, 0.3};
-        osc.phaseDistMod = ModInput{-1, 0};
-        osc.phaseDistMod = ModInput{-1, 0};
-        osc.freq = ModInput{-1, 250};
-        osc.morph = ModInput{-1, 0};
+    struct PatchDef {
+        const Instruction* instructions;
+        uint16_t count;
+    };
 
-        data.WTOscArr[0] = osc;
-        order.data[0].type = NodeType::WTOSCILLATOR;
-        order.data[0].dataIndex = 0;
-        order.data[0].outputBuffer = -1;
+    inline PatchDef createSimpleWTPatch(int wtindex)
+    {
+        static Instruction instructions[] = {
+            {
+                OpCode::WTOSC, 
+                Operand::Immediate_f(250.), 
+                Operand::ScalarReg(0), 
+                Operand::Immediate_f(0.), 
+                Operand::Immediate_u(0), // will be replaced
+                Operand::Immediate_f(0.), 
+                Operand::BufferReg(0)
+            }
+        };
+        instructions[0].op5.value.u = wtindex;
+        return {instructions, 1};
     }
 
-    void createSimpleWTPatchWithADSR(Data &data, NodeOrder &order)
+    inline PatchDef createSimpleWTPatchWithADSR()
     {
-        order.nodeCount = 3;
-        
-        WTOscData osc;
-        osc.wtIndex = 1;
-        osc.unison = 0;
-        osc.detune = ModInput{-1, 0.3};
-        osc.phaseDistMod = ModInput{-1, 0};
-        osc.phaseDistMod = ModInput{-1, 0};
-        osc.freq = ModInput{-1, 200};
-        osc.morph = ModInput{-1, 0};
-
-        data.WTOscArr[0] = osc;
-        order.data[0].type = NodeType::WTOSCILLATOR;
-        order.data[0].dataIndex = 0;
-        order.data[0].outputBuffer = 0;
-
-        auto adsr = ADSRData();
-        adsr.state = ADSRData::State::ATTACK;
-        adsr.sustain = -0.5;
-
-        data.ADSRArr[0] = adsr;
-        order.data[1].type = NodeType::ADSR;
-        order.data[1].dataIndex = 0;
-        order.data[1].outputBuffer = 1;
-
-        data.AmplifierArr[0] = AmplifierData{{0, 0.0}, {1, 0.5}};
-        order.data[2].type = NodeType::AMPLIFIER;
-        order.data[2].dataIndex = 0;
-        order.data[2].outputBuffer = -1;
+        static Instruction instructions[] = {
+            {
+                OpCode::WTOSC, 
+                Operand::Immediate_f(200.), 
+                Operand::ScalarReg(0), 
+                Operand::Immediate_f(0.), 
+                Operand::Immediate_u(1), 
+                Operand::Immediate_f(0.), 
+                Operand::BufferReg(1)
+            },
+            {
+                OpCode::ADSR,
+                Operand::Immediate_f(1.0f), 
+                Operand::ScalarReg(1), 
+                Operand::ScalarReg(2), 
+                Operand::Immediate_f(0.05f), 
+                Operand::Immediate_f(0.1f), 
+                Operand::Immediate_f(0.5f), // sustain
+                Operand::Immediate_f(0.0f), 
+                Operand::BufferReg(2)
+            },
+            {
+                OpCode::AMPL,
+                Operand::BufferReg(1), 
+                Operand::BufferReg(2), 
+                Operand::BufferReg(0)
+            }
+        };
+        return {instructions, 3};
     }
 
-    void createWTPatchwithFilter(Data &data, NodeOrder &order)
+    inline PatchDef createWTPatchwithFilter()
     {
-        order.nodeCount = 2;
-        
-        WTOscData osc;
-        osc.wtIndex = 1;
-        osc.unison = 1;
-        osc.detune = ModInput{-1, 1};
-        osc.phaseDistMod = ModInput{-1, 0};
-        osc.phaseDistMod = ModInput{-1, 0};
-        osc.freq = ModInput{-1, 200};
-        osc.morph = ModInput{-1, 0};
-
-        data.WTOscArr[0] = osc;
-        order.data[0].type = NodeType::WTOSCILLATOR;
-        order.data[0].dataIndex = 0;
-        order.data[0].outputBuffer = 0;
-
-        SVFData filt;
-        filt.input = ModInput{0, 0};
-        filt.Q = 0.1;
-        filt.fcut = 2500;
-
-        data.SVFArr[0] = filt;
-        order.data[1].type = NodeType::SVFLP;
-        order.data[1].dataIndex = 0;
-        order.data[1].outputBuffer = -1;
+        static Instruction instructions[] = {
+            {
+                OpCode::WTOSC, 
+                Operand::Immediate_f(200.), 
+                Operand::ScalarReg(0), 
+                Operand::Immediate_f(0.), 
+                Operand::Immediate_u(1), 
+                Operand::Immediate_f(0.), 
+                Operand::BufferReg(1)
+            },
+            {
+                OpCode::SVFILTLP,
+                Operand::ScalarReg(1), 
+                Operand::ScalarReg(2), 
+                Operand::BufferReg(1), 
+                Operand::Immediate_f(2500.), 
+                Operand::Immediate_f(0.1f), 
+                Operand::BufferReg(0)
+            }
+        };
+        return {instructions, 2};
     }
 
-    void createFMWTPatch(Data &data, NodeOrder &order, float freq)
+    // --- Complex patches left for manual porting ---
+
+    /*
+    inline PatchDef createFMWTPatch(float freq)
     {
-        order.nodeCount = 2;
-
-        SineOscData osc2;
-        osc2.freq.v = freq;
-
-        data.SineOscArr[0] = osc2;
-        order.data[0].type = NodeType::SINEOSCILLATOR;
-        order.data[0].dataIndex = 0;
-        order.data[0].outputBuffer = 0;
-
-        WTOscData osc;
-        osc.wtIndex = 0;
-        osc.unison = 1;
-        osc.phaseDistort.bufID = 0;
-        osc.phaseDistMod.v = 0.4;
-        osc.freq.v = freq;
-        osc.morph.v = 0;
-
-        data.WTOscArr[0] = osc;
-        order.data[1].type = NodeType::WTOSCILLATOR;
-        order.data[1].dataIndex = 0;
-        order.data[1].outputBuffer = -1;
+        // TODO: Port to VM instructions
+        return {nullptr, 0};
     }
 
-    void createFMWTPatchWithADSR(Data &data, NodeOrder &order);
-
-    void createPatchAlgo1(Data &data, NodeOrder &order, float_t freq, float_t fcut, float_t fmod)
+    inline PatchDef createFMWTPatchWithADSR()
     {
-        order.nodeCount = 4;
-
-        SineOscData sine1;
-        sine1.freq.v = freq;
-        data.SineOscArr[0] = sine1;
-
-        order.data[0].type = NodeType::SINEOSCILLATOR;
-        order.data[0].dataIndex = 0;
-        order.data[0].outputBuffer = 0;
-
-        WTOscData wtosc;
-        wtosc.wtIndex = 1;
-        wtosc.unison = 3;
-        wtosc.detune.v = 0.6;
-        wtosc.phaseDistort.bufID = 0;
-        wtosc.phaseDistMod.v = fmod;
-        wtosc.freq.v = freq;
-
-        data.WTOscArr[0] = wtosc;
-        order.data[1].type = NodeType::WTOSCILLATOR;
-        order.data[1].outputBuffer = 1;
-        order.data[1].dataIndex = 0;
-
-        SineOscData sine2;
-        sine2.freq.v = 1;
-        data.SineOscArr[1] = sine2;
-
-        order.data[2].type = NodeType::SINEOSCILLATOR;
-        order.data[2].outputBuffer = 2;
-        order.data[2].dataIndex = 1;
-
-        SVFData filt;
-        filt.fcut = fcut;
-        filt.Q = 0.1;
-        filt.fenv = 400;
-        filt.input.bufID = 1;
-        filt.modulation.bufID = 2;
-        data.SVFArr[0] = filt;
-
-        order.data[3].type = NodeType::SVFLP;
-        order.data[3].outputBuffer = -1;
-        order.data[3].dataIndex = 0;
+        // TODO: Port to VM instructions
+        return {nullptr, 0};
     }
 
-    void createPatchAlgo2(Data &data, NodeOrder &order)
+    inline PatchDef createPatchAlgo1(float_t freq, float_t fcut, float_t fmod)
     {
-        order.nodeCount = 7;
-        
-        SineOscData osc1;
-        osc1.freq.v = 200;
-        data.SineOscArr[0] = osc1;
-        order.data[0].type = NodeType::SINEOSCILLATOR;
-        order.data[0].outputBuffer = 0;
-        order.data[0].dataIndex = 0;
-        
-        WTOscData wtosc;
-        wtosc.freq.v = 200;
-        wtosc.phaseDistort.bufID = 0;
-        data.WTOscArr[0] = wtosc;
-        order.data[1].type = NodeType::WTOSCILLATOR;
-        order.data[1].outputBuffer = 1;
-        order.data[1].dataIndex = 0;
-
-        SineOscData osc2;
-        osc2.freq.v = 2;
-        data.SineOscArr[1] = osc2;
-        order.data[2].type = NodeType::SINEOSCILLATOR;
-        order.data[2].outputBuffer = 2;
-        order.data[2].dataIndex = 1;
-
-        data.ADSRArr[0] = ADSRData();
-        order.data[3].type = NodeType::ADSR;
-        order.data[3].outputBuffer = 3;
-        order.data[3].dataIndex = 0;
-        
-        SVFData filt;
-        filt.fcut = 400;
-        filt.fenv = 800;
-        filt.input.bufID = 1;
-        filt.modulation.bufID = 3;
-        data.SVFArr[0] = filt;
-        order.data[4].type = NodeType::SVFLP;
-        order.data[4].outputBuffer = 4;
-        order.data[4].dataIndex = 0;
-
-        data.ADSRArr[1] = ADSRData();
-        order.data[5].type = NodeType::ADSR;
-        order.data[5].outputBuffer = 5;
-        order.data[5].dataIndex = 1;
-
-        AmplifierData amp;
-        amp.amount.bufID = 5;
-        amp.input.bufID = 4;
-        data.AmplifierArr[0] = amp;
-        order.data[6].type = NodeType::AMPLIFIER;
-        order.data[6].outputBuffer = -1;
-        order.data[6].dataIndex = 0;
-
+        // TODO: Port to VM instructions
+        return {nullptr, 0};
     }
+
+    inline PatchDef createPatchAlgo2()
+    {
+        // TODO: Port to VM instructions
+        return {nullptr, 0};
+    }
+    */
 } // namespace Synth
