@@ -37,6 +37,7 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
+
 int main() {
     std::cout << "Initializing Synth Engine...\n";
 
@@ -48,6 +49,19 @@ int main() {
     // Set up a custom continuous patch to fix firmware bugs (unison=0, unhandled ADSR SUSTAIN)
     Data data;
     NodeOrder order;
+
+
+    Instruction instructions[] = {
+        {
+            OpCode::WTOSC, 
+            {OperandType::IMMEDIATE,{ .value = {.f = 440.f}}}, 
+            {OperandType::SCALAR_REG,{ .reg_index = 0}}, 
+            {OperandType::IMMEDIATE, {.value = {.f = 0.}}}, 
+            {OperandType::IMMEDIATE, {.value = {.u = 1}}}, 
+            {OperandType::IMMEDIATE, {.value = {.f = 0.0}}}, 
+            {OperandType::BUFFER_REG, {.reg_index = 0}}
+        }
+    };
     
     order.nodeCount = 1;
     
@@ -66,6 +80,7 @@ int main() {
 
     engine.loadData(data);
     engine.loadOrdering(order);
+    engine.set_instructions(instructions, 1);
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();

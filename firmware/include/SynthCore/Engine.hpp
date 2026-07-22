@@ -12,15 +12,7 @@
 namespace Synth
 {
 
-struct Context
-{
-    std::array<VariantType, REGISTER_SIZE> variant_reg;
-    std::array<float_t, REGISTER_SIZE> scalar_reg;
 
-    ShortBufferPool *short_buf_pool;
-    BufferPool *bufferPool;
-    ScalarRegister *external_register;
-};
 
 class SynthEngine : public AudioSource
 {
@@ -29,6 +21,9 @@ private:
     Context ctx;
 
     NodeOrder nodeOrder;
+
+    std::array<Instruction, MAX_INSTRUCTION_COUNT> instructions;
+    uint16_t instruction_count;
 
     int nodeCount = 0;
 
@@ -42,9 +37,11 @@ private:
 
     void processChunk(int chunk);
 
+    int process_instruction(Instruction instruction);
+
  public:
     SynthEngine(/* args */);
-    SynthEngine(BufferPool * pool, ShortBufferPool * short_pool ,ScalarRegister * ext_reg)
+    SynthEngine(BufferPool * pool, ShortBufferPool * short_pool, ScalarRegister * ext_reg)
     {
         ctx.bufferPool = pool;
         ctx.short_buf_pool = short_pool;
@@ -59,6 +56,8 @@ private:
     inline Data& getDataRef(int voice);
 
     void loadOrdering(const NodeOrder &order);
+
+    void set_instructions(Instruction * instruct_array, uint16_t count);
 
     virtual void audioCallback(AudioBuffer Buffer) override;
 };

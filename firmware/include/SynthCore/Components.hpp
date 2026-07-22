@@ -26,6 +26,7 @@ namespace Synth
         Operand op3;
         Operand op4;
         Operand op5;
+        Operand op6;
     };
 
     enum class ADSRState : uint8_t 
@@ -193,4 +194,9 @@ namespace Synth
     void processDelayData(DelayData *data, BufferPool *pool, float_t *outbuffer);
 
     void globalDelay(DelayData *data, float_t *input, float_t *output, size_t bufferLength);
+
+    int op_add(Instruction inst, Context &ctx);
+    int op_mix(Instruction inst, Context &ctx);
+    int op_wtosc(Instruction inst, Context &ctx);
+
 }

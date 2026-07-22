@@ -371,3 +371,94 @@ void Synth::globalDelay(DelayData *data, float_t *input, float_t *output, size_t
         }
     }
 }
+
+int Synth::op_add(Instruction inst, Context &ctx)
+{
+    // ADD, reg: op1, reg: op2, reg: result
+    float_t * out = ctx.get_scalar(inst.op3);
+    *out = *ctx.get_scalar(inst.op1) + *ctx.get_scalar(inst.op2);
+    return 0;
+}
+
+
+int Synth::op_mix(Instruction inst, Context &ctx)
+{
+    //MIX, reg: buf1, reg: buf2, reg: amount1, reg: amount2, reg: out
+    float_t * in_1 = ctx.get_buffer(inst.op1);
+    float_t * in_2 = ctx.get_buffer(inst.op2);
+    float_t * out = ctx.get_buffer(inst.op5);
+
+    float_t a1 = *ctx.get_scalar(inst.op3);
+    float_t a2 = *ctx.get_scalar(inst.op4);
+
+    for (int i = 0; i < CHUNK_SIZE; i++)
+    {
+        out[i] = in_1[i] * a1 + in_2[i] * a2;
+    }
+
+    return 0;
+}
+
+int Synth::op_wtosc(Instruction inst, Context &ctx)
+{
+    // WTOSC, reg1: freq, reg2: phi, reg3: phasedist, reg4: wt_index, reg5: morph, reg6: out
+    float_t fstart = 0.;
+    float_t fend = 0.;
+    if (inst.op1.type == OperandType::SHORTBUF_REG) 
+    {
+        auto buf = ctx.get_short_buffer(inst.op1);
+        fstart = buf.first();
+        fend = buf.second();
+    }
+    else
+    {
+        fstart = *ctx.get_scalar(inst.op1);
+        fend = fstart;
+    }
+
+    uint32_t * phi = ctx.get_uint32(inst.op2);
+    
+    bool use_phasemod = false;
+    if (inst.op3.type == OperandType::BUFFER_REG) use_phasemod = true;
+    float_t * phimod_buf = ctx.get_buffer(inst.op3);
+    uint32_t wt_index = *ctx.get_uint32(inst.op4);
+    auto morph = ctx.get_short_buffer(inst.op5);
+    float_t * outbuffer = ctx.get_buffer(inst.op6);
+
+    int band_index = getBandIndex(fstart, wt_index);
+    auto table = wt_library[wt_index][band_index].data;
+    auto tablesize = wt_library[wt_index][band_index].length;
+
+    const float increment = static_cast<float>(tablesize) / static_cast<float>(SPS);
+    float_t tablesize_f = static_cast<float_t>(tablesize);
+    const uint32_t phaseInrement_base = (1 << 22);
+    const uint32_t max32bit = ((uint32_t)0 - 1);
+    const float scale = 1.f / static_cast<float>((max32bit >> 10));
+    const float phi_iAf = static_cast<float>(phaseInrement_base) * tablesize_f * fstart / SPS;
+    const uint32_t phi_iA = static_cast<uint32_t>(phi_iAf);
+
+    if (use_phasemod) 
+    {
+        const float_t dist_base = static_cast<float>(phaseInrement_base) * tablesize_f * phimod_buf[0];
+
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            *phi += phi_iA;
+            float_t dist = static_cast<float>(phaseInrement_base) * tablesize_f * phimod_buf[i];
+            const uint32_t phiAdist = *phi + static_cast<uint32_t>(dist);
+
+            outbuffer[i] = sampleTableLinearFixed(table, phiAdist);
+        }
+    }
+    else 
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            *phi += phi_iA;
+
+            outbuffer[i] = sampleTableLinearFixed(table, *phi);
+        }
+    }
+
+    return 0;
+}

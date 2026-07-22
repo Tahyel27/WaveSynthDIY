@@ -16,11 +16,18 @@ namespace Synth
     constexpr int MAX_GRAPH_NODES = 20;
     constexpr int maxamp = 32767 / 2.5;
     constexpr size_t REGISTER_SIZE = 25;
+    constexpr size_t MAX_INSTRUCTION_COUNT = 20;
 
     constexpr int SPS = 45045;
     constexpr float dt = 1 / static_cast<float>(SPS);
 
-    using ScalarRegister = std::array<float_t, REGISTER_SIZE>;
+    union RegisterData 
+    {
+        float_t f;
+        uint32_t u;
+    };
+
+    using ScalarRegister = std::array<RegisterData, REGISTER_SIZE>;
 
     class BufferPool
     {
@@ -123,6 +130,7 @@ namespace Synth
 
     enum class OperandType : uint8_t 
     {
+        NONE,
         SCALAR_REG,
         SHORTBUF_REG,
         BUFFER_REG,
@@ -137,10 +145,95 @@ namespace Synth
         union 
         {
             uint16_t reg_index;
-            float value;
+            RegisterData value;
         };
     };
 
-    
+    struct Context
+    {
+        std::array<RegisterData, REGISTER_SIZE> scalar_reg;
+
+        ShortBufferPool *short_buf_pool;
+        BufferPool *bufferPool;
+        ScalarRegister *external_register;
+
+        float_t * get_scalar(Operand &op) 
+        {
+            if (op.type == OperandType::SCALAR_REG) 
+            {
+                return &scalar_reg[op.reg_index].f;
+            }
+            else if (op.type == OperandType::EXT_REG)
+            {
+                return &(*external_register)[op.reg_index].f;
+            }
+            else if (op.type == OperandType::SHORTBUF_REG)
+            {
+                return &short_buf_pool->getBuffer(op.reg_index).first();
+            }
+            else if (op.type == OperandType::IMMEDIATE)
+            {
+                return &op.value.f;
+            }
+            else 
+            {
+                return nullptr;
+            }
+        }
+
+        uint32_t * get_uint32(Operand &op)
+        {
+            if (op.type == OperandType::SCALAR_REG)
+            {
+                return &scalar_reg[op.reg_index].u;
+            }
+            else if (op.type == OperandType::EXT_REG)
+            {
+                return &(*external_register)[op.reg_index].u;
+            }
+            else if (op.type == OperandType::IMMEDIATE)
+            {
+                return &op.value.u;
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
+
+        float_t * get_buffer(Operand &op)
+        {
+            if (op.type == OperandType::BUFFER_REG)
+            {
+                return bufferPool->getBuffer(op.reg_index);
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
+
+        ShortBufferView get_short_buffer(Operand &op)
+        {
+            if (op.type == OperandType::SHORTBUF_REG)
+            {
+                return short_buf_pool->getBuffer(op.reg_index);
+            }
+            else if (op.type == OperandType::SCALAR_REG) 
+            {
+                auto ptr = get_scalar(op);
+                return ShortBufferView{ptr, ptr};
+            }
+            else if (op.type == OperandType::IMMEDIATE)
+            {
+                return ShortBufferView{&op.value.f, &op.value.f};
+            }
+            else
+            {
+                return ShortBufferView{nullptr, nullptr};
+            }
+
+        }
+    };
 
 } // namespace Synth

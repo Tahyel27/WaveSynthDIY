@@ -1,5 +1,8 @@
 list of opcodes for the processor:
-WTOSC, reg: freq, reg: phi1, reg: phi2, reg: phi3, reg: phasedist, reg: morph, vreg_int: unison, reg: detune, reg: out
+ADD, reg: op1, reg: op2, reg: result
+MIX, reg: buf1, reg: buf2, reg: amount1, reg: amount2, reg: out
+WTOSC, reg: freq, reg: phi, reg: phasedist, reg: wt_index, reg: morph, reg: out
+  - unison will be done at a patch level
 AMPL, reg: signal, reg: gain, reg: out
 SINEOSC, reg: freq, reg: phasedist
 ADSR, reg: signal, vreg_adsr: state, reg: time, reg: out
