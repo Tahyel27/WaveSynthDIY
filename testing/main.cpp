@@ -45,10 +45,6 @@ int main() {
     ShortBufferPool short_pool;
     ScalarRegister ext_reg;
     SynthEngine engine(&pool, &short_pool, &ext_reg);
-    
-    // Set up a custom continuous patch to fix firmware bugs (unison=0, unhandled ADSR SUSTAIN)
-    Data data;
-    NodeOrder order;
 
 
     Instruction instructions[] = {
@@ -114,24 +110,7 @@ int main() {
             Operand::BufferReg(0)        // Final Output
         }
     };
-    
-    order.nodeCount = 1;
-    
-    WTOscData osc;
-    osc.wtIndex = 1;
-    osc.unison = 1;
-    osc.detune = ModInput{-1, 0.3f};
-    osc.phaseDistMod = ModInput{-1, 0.0f};
-    osc.freq = ModInput{-1, 200.0f};
-    osc.morph = ModInput{-1, 0.0f};
 
-    data.WTOscArr[0] = osc;
-    order.data[0].type = NodeType::WTOSCILLATOR;
-    order.data[0].dataIndex = 0;
-    order.data[0].outputBuffer = -1; // -1 routes directly to the voice output
-
-    engine.loadData(data);
-    engine.loadOrdering(order);
     engine.set_instructions(instructions, 7);
 
     std::cout << "Initializing PortAudio...\n";

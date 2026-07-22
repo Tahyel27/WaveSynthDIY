@@ -10,27 +10,11 @@ void SynthEngine::audioCallback(AudioBuffer Buffer)
     output(Buffer);
 }
 
-void SynthEngine::loadData(const Data &data_)
-{
-    data = data_;
-};
-
-void Synth::SynthEngine::loadOrdering(const NodeOrder &order)
-{
-    nodeOrder = order;
-}
-
 void Synth::SynthEngine::set_instructions(Instruction *instruct_array, uint16_t count)
 {
     std::copy_n(instruct_array, count, instructions.begin());
     instruction_count = count;
 }
-
-std::tuple<Data &, NodeOrder &> Synth::SynthEngine::getDataForVoiceRef(int voice)
-{
-    return std::tuple<Data &, NodeOrder &>(data,nodeOrder);
-}
-
 
 void Synth::SynthEngine::output(AudioBuffer buffer)
 {
@@ -53,31 +37,10 @@ void Synth::SynthEngine::processGraph()
 
 void Synth::SynthEngine::processChunk(int chunk)
 {
-    ctx.bufferPool->wipeBuffers();
-    //we iterate over the operations in the queue
-    /*for (size_t i = 0; i < nodeOrder.nodeCount; i++)
-    {
-        //we send the node to processing
-        //we have to send the NodeData array of our current voice, our current output buffer(as a pointer, we can always do this), and the buffer pool
-        //the final output buffer pointer will wary depending on the chunk
-        float_t * outbuffer;
-        if (nodeOrder.data[i].outputBuffer != -1)
-        {
-            outbuffer = ctx.bufferPool->getBuffer(nodeOrder.data[i].outputBuffer);
-        }
-        else
-        {
-            outbuffer = &output_buffer[CHUNK_SIZE * chunk];
-        }
-        
-        processNode(nodeOrder.data[i].type, nodeOrder.data[i].dataIndex, data, outbuffer, ctx.bufferPool);
-    }*/
-
     for (int i = 0; i < instruction_count; i++)
     {
         process_instruction(instructions[i]);
     }
-    
 }
 
 int Synth::SynthEngine::process_instruction(Instruction instruction) 
