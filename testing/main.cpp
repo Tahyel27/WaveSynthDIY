@@ -54,12 +54,21 @@ int main() {
     Instruction instructions[] = {
         {
             OpCode::WTOSC, 
-            {OperandType::IMMEDIATE,{ .value = {.f = 440.f}}}, 
-            {OperandType::SCALAR_REG,{ .reg_index = 0}}, 
-            {OperandType::IMMEDIATE, {.value = {.f = 0.}}}, 
-            {OperandType::IMMEDIATE, {.value = {.u = 1}}}, 
-            {OperandType::IMMEDIATE, {.value = {.f = 0.0}}}, 
-            {OperandType::BUFFER_REG, {.reg_index = 0}}
+            Operand::Immediate_f(440.), 
+            Operand::ScalarReg(0), 
+            Operand::Immediate_f(0.), 
+            Operand::Immediate_u(1), 
+            Operand::Immediate_f(0.), 
+            Operand::BufferReg(1)
+        },
+        {
+            OpCode::SVFILTLP,
+            Operand::ScalarReg(1),
+            Operand::ScalarReg(2),
+            Operand::BufferReg(1),
+            Operand::Immediate_f(1000.),
+            Operand::Immediate_f(1.),
+            Operand::BufferReg(0)
         }
     };
     
@@ -80,7 +89,7 @@ int main() {
 
     engine.loadData(data);
     engine.loadOrdering(order);
-    engine.set_instructions(instructions, 1);
+    engine.set_instructions(instructions, 2);
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();

@@ -160,6 +160,41 @@ namespace Synth
             uint16_t reg_index;
             RegisterData value;
         };
+
+        static Operand None() 
+        {
+            return Operand{OperandType::NONE, {.reg_index = 0}};
+        }
+
+        static Operand ScalarReg(uint16_t index)
+        {
+            return Operand{OperandType::SCALAR_REG, {.reg_index = index}};
+        }
+
+        static Operand ShortBufReg(uint16_t index)
+        {
+            return Operand{OperandType::SHORTBUF_REG, {.reg_index = index}};
+        }
+
+        static Operand BufferReg(uint16_t index)
+        {
+            return Operand{OperandType::BUFFER_REG, {.reg_index = index}};
+        }
+
+        static Operand ExternalReg(uint16_t index)
+        {
+            return Operand{OperandType::EXT_REG, {.reg_index = index}};
+        }
+
+        static Operand Immediate_f(float_t f)
+        {
+            return Operand{OperandType::IMMEDIATE, {.value = {.f = f}}};
+        }
+
+        static Operand Immediate_u(uint32_t u)
+        {
+            return Operand{OperandType::IMMEDIATE, {.value = {.u = u}}};
+        }
     };
 
     struct Context
