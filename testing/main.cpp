@@ -68,7 +68,24 @@ int main() {
             Operand::BufferReg(1),
             Operand::Immediate_f(1000.),
             Operand::Immediate_f(1.),
-            Operand::BufferReg(0)
+            Operand::BufferReg(1) // Overwrite buffer 1 with filtered signal
+        },
+        {
+            OpCode::ADSR,
+            Operand::Immediate_f(1.0f),  // Gate is HIGH
+            Operand::ScalarReg(3),       // State
+            Operand::ScalarReg(4),       // Env Val
+            Operand::Immediate_f(0.5f),  // Attack
+            Operand::Immediate_f(0.5f),  // Decay
+            Operand::Immediate_f(0.3f),  // Sustain
+            Operand::Immediate_f(1.0f),  // Release
+            Operand::BufferReg(2)        // Env Out
+        },
+        {
+            OpCode::AMPL,
+            Operand::BufferReg(1),       // Filtered audio
+            Operand::BufferReg(2),       // Envelope
+            Operand::BufferReg(0)        // Final Output
         }
     };
     
@@ -89,7 +106,7 @@ int main() {
 
     engine.loadData(data);
     engine.loadOrdering(order);
-    engine.set_instructions(instructions, 2);
+    engine.set_instructions(instructions, 4);
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();

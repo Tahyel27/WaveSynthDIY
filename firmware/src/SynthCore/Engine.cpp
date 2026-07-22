@@ -100,6 +100,7 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
         op_ampl(instruction, ctx);
         break;
     case OpCode::ADSR:
+        op_adsr(instruction, ctx);
         break;
     case OpCode::SVFILTLP:
         op_svfilt_lp(instruction, ctx);

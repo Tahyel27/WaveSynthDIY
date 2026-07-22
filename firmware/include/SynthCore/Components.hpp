@@ -28,6 +28,8 @@ namespace Synth
         Operand op4;
         Operand op5;
         Operand op6;
+        Operand op7;
+        Operand op8;
     };
 
     enum class ADSRState : uint8_t 
@@ -202,4 +204,5 @@ namespace Synth
     int op_svfilt_lp(Instruction inst, Context &ctx);
     int op_unison(Instruction inst, Context &ctx);
     int op_ampl(Instruction inst, Context &ctx);
+    int op_adsr(Instruction inst, Context &ctx);
 }
