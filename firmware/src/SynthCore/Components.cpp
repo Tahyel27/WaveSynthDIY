@@ -619,3 +619,54 @@ int Synth::op_adsr(Instruction inst, Context &ctx)
 
     return 0;
 }
+
+int Synth::op_sineosc(Instruction inst, Context &ctx)
+{
+    // SINEOSC, reg1: freq, reg2: phi, reg3: phasedist, reg4: out
+    float_t fstart = 0.;
+    if (inst.op1.type == OperandType::SHORTBUF_REG) 
+    {
+        fstart = ctx.get_short_buffer(inst.op1).first();
+    }
+    else
+    {
+        fstart = *ctx.get_scalar(inst.op1);
+    }
+
+    uint32_t * phi = ctx.get_uint32(inst.op2);
+    
+    bool use_phasemod = false;
+    if (inst.op3.type == OperandType::BUFFER_REG) use_phasemod = true;
+    float_t * phimod_buf = ctx.get_buffer(inst.op3);
+    float_t * outbuffer = ctx.get_buffer(inst.op4);
+
+    auto table = wt_library[0][0].data;
+    auto tablesize = wt_library[0][0].length;
+
+    const uint32_t phaseInrement_base = (1 << 22);
+    float_t tablesize_f = static_cast<float_t>(tablesize);
+    const float phi_iAf = static_cast<float>(phaseInrement_base) * tablesize_f * fstart / SPS;
+    const uint32_t phaseIncrement = static_cast<uint32_t>(phi_iAf);
+
+    if (use_phasemod) 
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            *phi += phaseIncrement;
+            float_t dist = static_cast<float>(phaseInrement_base) * tablesize_f * phimod_buf[i];
+            const uint32_t phiAdist = *phi + static_cast<uint32_t>(dist);
+
+            outbuffer[i] = sampleTableLinearFixed(table, phiAdist) * 4.0f;
+        }
+    }
+    else 
+    {
+        for (size_t i = 0; i < CHUNK_SIZE; i++)
+        {
+            *phi += phaseIncrement;
+            outbuffer[i] = sampleTableLinearFixed(table, *phi) * 4.0f;
+        }
+    }
+
+    return 0;
+}

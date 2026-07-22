@@ -205,4 +205,5 @@ namespace Synth
     int op_unison(Instruction inst, Context &ctx);
     int op_ampl(Instruction inst, Context &ctx);
     int op_adsr(Instruction inst, Context &ctx);
+    int op_sineosc(Instruction inst, Context &ctx);
 }

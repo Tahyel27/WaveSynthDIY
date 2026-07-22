@@ -95,6 +95,7 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
         op_wtosc(instruction, ctx);
         break;
     case OpCode::SINEOSC:
+        op_sineosc(instruction, ctx);
         break;
     case OpCode::AMPL:
         op_ampl(instruction, ctx);
