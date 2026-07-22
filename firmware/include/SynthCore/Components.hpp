@@ -15,7 +15,8 @@ namespace Synth
         SINEOSC,
         AMPL,
         ADSR,
-        SVFILTLP
+        SVFILTLP,
+        UNISON
     };
 
     struct Instruction 
@@ -199,4 +200,6 @@ namespace Synth
     int op_mix(Instruction inst, Context &ctx);
     int op_wtosc(Instruction inst, Context &ctx);
     int op_svfilt_lp(Instruction inst, Context &ctx);
+    int op_unison(Instruction inst, Context &ctx);
+    int op_ampl(Instruction inst, Context &ctx);
 }

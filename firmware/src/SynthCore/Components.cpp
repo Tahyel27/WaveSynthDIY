@@ -495,3 +495,47 @@ int Synth::op_svfilt_lp(Instruction inst, Context &ctx)
 
     return 0;
 }
+
+int Synth::op_unison(Instruction inst, Context &ctx)
+{
+    //UNISON, reg: freq, reg: detune, reg: out2, reg: out3
+    float_t & f = *ctx.get_scalar(inst.op1);
+    float_t det = *ctx.get_scalar(inst.op2);
+    *ctx.get_scalar(inst.op3) = f + f * det;
+    *ctx.get_scalar(inst.op4) = f - f * det;
+
+    return 0;
+}
+
+int Synth::op_ampl(Instruction inst, Context &ctx)
+{
+    //AMPL, reg: signal, reg: gain, reg: out
+    float_t * in = ctx.get_buffer(inst.op1);
+    float_t * out = ctx.get_buffer(inst.op3);
+    if (inst.op2.type == OperandType::SCALAR_REG || inst.op2.type == OperandType::EXT_REG || inst.op2.type == OperandType::IMMEDIATE) 
+    {
+        float_t gain = *ctx.get_scalar(inst.op2);
+        for (int i = 0; i < CHUNK_SIZE; i++)
+        {
+            out[i] = gain * in[i];
+        }
+    }
+    else if (inst.op2.type == OperandType::SHORTBUF_REG) 
+    {
+        auto gain = ctx.get_short_buffer(inst.op2);
+        for (int i = 0; i < CHUNK_SIZE; i++)
+        {
+            out[i] = gain.next() * in[i];
+        }
+    }
+    else if (inst.op2.type == OperandType::BUFFER_REG)
+    {
+        float_t * gain = ctx.get_buffer(inst.op2);
+        for (int i = 0; i < CHUNK_SIZE; i++)
+        {
+            out[i] = gain[i] * in[i];
+        }
+    }
+
+    return 0;
+}

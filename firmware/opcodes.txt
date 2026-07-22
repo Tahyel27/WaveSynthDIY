@@ -5,5 +5,6 @@ WTOSC, reg: freq, reg: phi, reg: phasedist, reg: wt_index, reg: morph, reg: out
   - unison will be done at a patch level
 AMPL, reg: signal, reg: gain, reg: out
 SINEOSC, reg: freq, reg: phasedist
-ADSR, reg: signal, vreg_adsr: state, reg: time, reg: out
+ADSR, reg: signal, reg: state, reg: time, reg: attack, reg: decay, reg: sustain, reg: release, reg: out
 SVFILT, reg: z1, reg: z2, reg: signal, reg: cutoff, reg: q, reg: out
+UNISON, reg: freq, reg: detune, reg: out2, reg: out3

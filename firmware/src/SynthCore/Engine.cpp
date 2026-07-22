@@ -97,11 +97,15 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
     case OpCode::SINEOSC:
         break;
     case OpCode::AMPL:
+        op_ampl(instruction, ctx);
         break;
     case OpCode::ADSR:
         break;
     case OpCode::SVFILTLP:
         op_svfilt_lp(instruction, ctx);
+        break;
+    case OpCode::UNISON:
+        op_unison(instruction, ctx);
         break;
     default:
         break;
