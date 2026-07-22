@@ -101,6 +101,7 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
     case OpCode::ADSR:
         break;
     case OpCode::SVFILTLP:
+        op_svfilt_lp(instruction, ctx);
         break;
     default:
         break;

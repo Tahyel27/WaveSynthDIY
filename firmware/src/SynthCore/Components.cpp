@@ -462,3 +462,36 @@ int Synth::op_wtosc(Instruction inst, Context &ctx)
 
     return 0;
 }
+
+int Synth::op_svfilt_lp(Instruction inst, Context &ctx)
+{
+    // SVFILT, reg1: z1, reg2: z2, reg3: signal, reg4: cutoff, reg5: q, reg6: out
+    float_t & z1 = *ctx.get_scalar(inst.op1);
+    float_t & z2 = *ctx.get_scalar(inst.op2);
+    float_t * input = ctx.get_buffer(inst.op3);
+    auto cutoff = ctx.get_short_buffer(inst.op4);
+    auto q = ctx.get_short_buffer(inst.op5);
+    float_t * output = ctx.get_buffer(inst.op6);
+
+    const float_t iSPS = 1.f / static_cast<float>(SPS);
+    const float_t g = (cutoff.first()) * M_PI * iSPS;
+    const float_t d = 1 / (1 + 2 * q.first() * g + g * g);
+
+    for (size_t i = 0; i < CHUNK_SIZE; i++)
+    {
+        float_t in = input[i];
+
+        float_t g = (cutoff.next()) * M_PI * iSPS;
+        float_t d = 1/(1 + 2*q.next()*g + g*g);
+        float_t BP = (g * (in - z2) + z1) * d;
+        float_t v1 = BP - z1;
+        z1 = BP + v1;
+        float_t v2 = g * BP;
+        float_t LP = v2 + z2;
+        z2 = LP + v2;
+
+        output[i] = LP;
+    }
+
+    return 0;
+}

@@ -6,4 +6,4 @@ WTOSC, reg: freq, reg: phi, reg: phasedist, reg: wt_index, reg: morph, reg: out
 AMPL, reg: signal, reg: gain, reg: out
 SINEOSC, reg: freq, reg: phasedist
 ADSR, reg: signal, vreg_adsr: state, reg: time, reg: out
-SVFILT, reg: z1, reg: z2, reg: signal, reg: out
+SVFILT, reg: z1, reg: z2, reg: signal, reg: cutoff, reg: q, reg: out

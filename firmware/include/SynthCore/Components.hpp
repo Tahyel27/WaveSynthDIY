@@ -198,5 +198,5 @@ namespace Synth
     int op_add(Instruction inst, Context &ctx);
     int op_mix(Instruction inst, Context &ctx);
     int op_wtosc(Instruction inst, Context &ctx);
-
+    int op_svfilt_lp(Instruction inst, Context &ctx);
 }
