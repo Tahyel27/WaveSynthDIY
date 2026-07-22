@@ -176,21 +176,33 @@ int Synth::op_svfilt_lp(Instruction inst, Context &ctx)
     float_t * output = ctx.get_buffer(inst.op6);
 
     const float_t iSPS = 1.f / static_cast<float>(SPS);
-    const float_t g = (cutoff.first()) * M_PI * iSPS;
-    const float_t d = 1 / (1 + 2 * q.first() * g + g * g);
+    const float_t g_start = (cutoff.first()) * M_PI * iSPS;
+    const float_t g_end = (cutoff.second()) * M_PI * iSPS;
+    const float_t d_start = 1 / (1 + 2 * q.first() * g_start + g_start * g_start);
+    const float_t d_end = 1 / (1 + 2 * q.second() * g_start + g_start * g_start);
+
+    const float_t g_increment = (g_end - g_start) / static_cast<float_t>(CHUNK_SIZE);
+    const float_t d_increment = (d_end - d_start) / static_cast<float_t>(CHUNK_SIZE);
+
+    float_t g = g_start;
+    float_t d = d_start;
+    
+    /*const float_t g = (cutoff.first()) * M_PI * iSPS;
+    const float_t d = 1 / (1 + 2 * q.first() * g + g * g);*/
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
         float_t in = input[i];
 
-        float_t g = (cutoff.next()) * M_PI * iSPS;
-        float_t d = 1/(1 + 2*q.next()*g + g*g);
         float_t BP = (g * (in - z2) + z1) * d;
         float_t v1 = BP - z1;
         z1 = BP + v1;
         float_t v2 = g * BP;
         float_t LP = v2 + z2;
         z2 = LP + v2;
+
+        g += g_increment;
+        d += d_increment;
 
         output[i] = LP;
     }
