@@ -109,6 +109,15 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
     case OpCode::UNISON:
         op_unison(instruction, ctx);
         break;
+    case OpCode::LFOSINE:
+        op_lfosine(instruction, ctx);
+        break;
+    case OpCode::LFOTRI:
+        op_lfotri(instruction, ctx);
+        break;
+    case OpCode::LFOSAW:
+        op_lfosaw(instruction, ctx);
+        break;
     default:
         break;
     }

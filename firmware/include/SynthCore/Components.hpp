@@ -16,7 +16,10 @@ namespace Synth
         AMPL,
         ADSR,
         SVFILTLP,
-        UNISON
+        UNISON,
+        LFOSINE,
+        LFOTRI,
+        LFOSAW
     };
 
     struct Instruction 
@@ -206,4 +209,7 @@ namespace Synth
     int op_ampl(Instruction inst, Context &ctx);
     int op_adsr(Instruction inst, Context &ctx);
     int op_sineosc(Instruction inst, Context &ctx);
+    int op_lfosine(Instruction inst, Context &ctx);
+    int op_lfotri(Instruction inst, Context &ctx);
+    int op_lfosaw(Instruction inst, Context &ctx);
 }

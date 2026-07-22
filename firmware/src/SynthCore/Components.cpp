@@ -670,3 +670,149 @@ int Synth::op_sineosc(Instruction inst, Context &ctx)
 
     return 0;
 }
+
+int Synth::op_lfosine(Instruction inst, Context &ctx)
+{
+    float_t freq_start = 0.0f;
+    float_t freq_end = 0.0f;
+    if (inst.op1.type == OperandType::SHORTBUF_REG) {
+        freq_start = ctx.get_short_buffer(inst.op1).first();
+        freq_end = ctx.get_short_buffer(inst.op1).second();
+    } else {
+        freq_start = *ctx.get_scalar(inst.op1);
+        freq_end = freq_start;
+    }
+
+    uint32_t *phi = ctx.get_uint32(inst.op2);
+    
+    float_t dist_start = 0.0f;
+    float_t dist_end = 0.0f;
+    if (inst.op3.type == OperandType::SHORTBUF_REG) {
+        dist_start = ctx.get_short_buffer(inst.op3).first();
+        dist_end = ctx.get_short_buffer(inst.op3).second();
+    } else {
+        dist_start = *ctx.get_scalar(inst.op3);
+        dist_end = dist_start;
+    }
+
+    auto outbuffer = ctx.get_short_buffer(inst.op4);
+    auto table = wt_library[0][0].data;
+
+    auto calc_sine = [&](uint32_t phase, float_t dist) -> float_t {
+        // 4294967296.0f is 2^32. This maps the 0.0-1.0 phase distortion value onto the full 32-bit unsigned integer range.
+        uint32_t dist_offset = static_cast<uint32_t>(dist * 4294967296.0f);
+        return sampleTableLinearFixed(table, phase + dist_offset) * 4.0f;
+    };
+
+    outbuffer.first() = calc_sine(*phi, dist_start);
+
+    float_t avg_freq = (freq_start + freq_end) * 0.5f;
+    // 4294967296.0f is 2^32. This converts the frequency (Hz) into a 32-bit phase increment per second.
+    uint32_t chunk_increment = static_cast<uint32_t>((avg_freq / SPS) * 4294967296.0f * CHUNK_SIZE);
+
+    *phi += chunk_increment;
+    outbuffer.second() = calc_sine(*phi, dist_end);
+
+    return 0;
+}
+
+int Synth::op_lfotri(Instruction inst, Context &ctx)
+{
+    float_t freq_start = 0.0f;
+    float_t freq_end = 0.0f;
+    if (inst.op1.type == OperandType::SHORTBUF_REG) {
+        freq_start = ctx.get_short_buffer(inst.op1).first();
+        freq_end = ctx.get_short_buffer(inst.op1).second();
+    } else {
+        freq_start = *ctx.get_scalar(inst.op1);
+        freq_end = freq_start;
+    }
+
+    uint32_t *phi = ctx.get_uint32(inst.op2);
+    
+    float_t dist_start = 0.0f;
+    float_t dist_end = 0.0f;
+    if (inst.op3.type == OperandType::SHORTBUF_REG) {
+        dist_start = ctx.get_short_buffer(inst.op3).first();
+        dist_end = ctx.get_short_buffer(inst.op3).second();
+    } else {
+        dist_start = *ctx.get_scalar(inst.op3);
+        dist_end = dist_start;
+    }
+
+    auto outbuffer = ctx.get_short_buffer(inst.op4);
+
+    auto calc_tri = [](uint32_t phase, float_t dist) -> float_t {
+        // 4294967296.0f is 2^32. This maps the 0.0-1.0 phase distortion value onto the 32-bit phase.
+        uint32_t p = phase + static_cast<uint32_t>(dist * 4294967296.0f);
+        
+        // 0x80000000 is 2^31 (the midpoint of a 32-bit integer). This splits the triangle wave into its rising and falling halves.
+        if (p < 0x80000000) {
+            // 1073741824.0f is 2^30. Dividing by this maps the first half of the phase (0 to 2^31) into a 0.0 to 2.0 range.
+            // Subtracting 1.0 shifts the output down to range from -1.0 to 1.0 (the rising edge).
+            return (static_cast<float_t>(p) / 1073741824.0f) - 1.0f;
+        } else {
+            // Dividing by 2^30 maps the second half of the phase (2^31 to 2^32) into a 2.0 to 4.0 range.
+            // Subtracting this from 3.0 flips the slope, yielding a 1.0 to -1.0 range (the falling edge).
+            return 3.0f - (static_cast<float_t>(p) / 1073741824.0f);
+        }
+    };
+
+    outbuffer.first() = calc_tri(*phi, dist_start);
+
+    float_t avg_freq = (freq_start + freq_end) * 0.5f;
+    // 4294967296.0f is 2^32. Converts the frequency (Hz) into a 32-bit phase increment per second.
+    uint32_t chunk_increment = static_cast<uint32_t>((avg_freq / SPS) * 4294967296.0f * CHUNK_SIZE);
+
+    *phi += chunk_increment;
+    outbuffer.second() = calc_tri(*phi, dist_end);
+
+    return 0;
+}
+
+int Synth::op_lfosaw(Instruction inst, Context &ctx)
+{
+    float_t freq_start = 0.0f;
+    float_t freq_end = 0.0f;
+    if (inst.op1.type == OperandType::SHORTBUF_REG) {
+        freq_start = ctx.get_short_buffer(inst.op1).first();
+        freq_end = ctx.get_short_buffer(inst.op1).second();
+    } else {
+        freq_start = *ctx.get_scalar(inst.op1);
+        freq_end = freq_start;
+    }
+
+    uint32_t *phi = ctx.get_uint32(inst.op2);
+    
+    float_t dist_start = 0.0f;
+    float_t dist_end = 0.0f;
+    if (inst.op3.type == OperandType::SHORTBUF_REG) {
+        dist_start = ctx.get_short_buffer(inst.op3).first();
+        dist_end = ctx.get_short_buffer(inst.op3).second();
+    } else {
+        dist_start = *ctx.get_scalar(inst.op3);
+        dist_end = dist_start;
+    }
+
+    auto outbuffer = ctx.get_short_buffer(inst.op4);
+
+    auto calc_saw = [](uint32_t phase, float_t dist) -> float_t {
+        // 4294967296.0f is 2^32. This maps the 0.0-1.0 phase distortion value onto the 32-bit phase.
+        uint32_t p = phase + static_cast<uint32_t>(dist * 4294967296.0f);
+        
+        // 2147483648.0f is 2^31. Dividing by this maps the full 0 to 2^32 phase range into a 0.0 to 2.0 float range.
+        // Subtracting 1.0 shifts the output down to range from -1.0 to 1.0 (a pure sawtooth).
+        return (static_cast<float_t>(p) / 2147483648.0f) - 1.0f;
+    };
+
+    outbuffer.first() = calc_saw(*phi, dist_start);
+
+    float_t avg_freq = (freq_start + freq_end) * 0.5f;
+    // 4294967296.0f is 2^32. Converts the frequency (Hz) into a 32-bit phase increment per second.
+    uint32_t chunk_increment = static_cast<uint32_t>((avg_freq / SPS) * 4294967296.0f * CHUNK_SIZE);
+
+    *phi += chunk_increment;
+    outbuffer.second() = calc_saw(*phi, dist_end);
+
+    return 0;
+}
