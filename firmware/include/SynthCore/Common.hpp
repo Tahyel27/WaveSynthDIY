@@ -151,7 +151,7 @@ namespace Synth
 
     struct Context
     {
-        std::array<RegisterData, REGISTER_SIZE> scalar_reg;
+        std::array<RegisterData, REGISTER_SIZE> scalar_reg{};
 
         ShortBufferPool *short_buf_pool;
         BufferPool *bufferPool;
