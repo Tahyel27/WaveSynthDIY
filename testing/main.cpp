@@ -52,24 +52,49 @@ int main() {
 
 
     Instruction instructions[] = {
+        // 1. Audio source: WTOSC 440 Hz
         {
             OpCode::WTOSC, 
-            Operand::ExternalReg(0), 
+            Operand::Immediate_f(440.), 
             Operand::ScalarReg(0), 
             Operand::Immediate_f(0.), 
             Operand::Immediate_u(1), 
             Operand::Immediate_f(0.), 
             Operand::BufferReg(1)
         },
+        // 2. LFO: Triangle at 2 Hz
+        {
+            OpCode::LFOTRI,
+            Operand::Immediate_f(2.0f),  // freq
+            Operand::ScalarReg(5),       // phi
+            Operand::Immediate_f(0.0f),  // phasedist
+            Operand::ShortBufReg(0)      // out
+        },
+        // 3. Scale LFO depth: LFO * 900.0
+        {
+            OpCode::MUL_SB,
+            Operand::ShortBufReg(0),     // LFO in (-1.0 to 1.0)
+            Operand::Immediate_f(900.0f),// Depth (yields -900.0 to 900.0)
+            Operand::ShortBufReg(1)      // Scaled LFO out
+        },
+        // 4. Offset LFO: Scaled LFO + 1100.0
+        {
+            OpCode::ADD_SB,
+            Operand::ShortBufReg(1),     // Scaled LFO
+            Operand::Immediate_f(1100.0f),// Base frequency (yields 200.0 to 2000.0)
+            Operand::ShortBufReg(2)      // Final cutoff out
+        },
+        // 5. Filter: SVF LP with modulated cutoff
         {
             OpCode::SVFILTLP,
-            Operand::ScalarReg(1),
-            Operand::ScalarReg(2),
-            Operand::BufferReg(1),
-            Operand::Immediate_f(1000.),
-            Operand::Immediate_f(1.),
-            Operand::BufferReg(1) // Overwrite buffer 1 with filtered signal
+            Operand::ScalarReg(1),       // z1
+            Operand::ScalarReg(2),       // z2
+            Operand::BufferReg(1),       // input signal
+            Operand::ShortBufReg(2),     // modulated cutoff
+            Operand::Immediate_f(0.5f),  // q (resonance)
+            Operand::BufferReg(1)        // output signal (overwrite)
         },
+        // 6. ADSR: Generate envelope
         {
             OpCode::ADSR,
             Operand::Immediate_f(1.0f),  // Gate is HIGH
@@ -81,6 +106,7 @@ int main() {
             Operand::Immediate_f(1.0f),  // Release
             Operand::BufferReg(2)        // Env Out
         },
+        // 7. AMPL: Apply envelope to filtered audio
         {
             OpCode::AMPL,
             Operand::BufferReg(1),       // Filtered audio
@@ -89,8 +115,6 @@ int main() {
         }
     };
     
-    ext_reg[0].f = 800.; //WTOSC frequency
-
     order.nodeCount = 1;
     
     WTOscData osc;
@@ -108,7 +132,7 @@ int main() {
 
     engine.loadData(data);
     engine.loadOrdering(order);
-    engine.set_instructions(instructions, 4);
+    engine.set_instructions(instructions, 7);
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();

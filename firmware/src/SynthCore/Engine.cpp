@@ -118,6 +118,15 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
     case OpCode::LFOSAW:
         op_lfosaw(instruction, ctx);
         break;
+    case OpCode::MUL:
+        op_mul(instruction, ctx);
+        break;
+    case OpCode::MUL_SB:
+        op_mul_sb(instruction, ctx);
+        break;
+    case OpCode::ADD_SB:
+        op_add_sb(instruction, ctx);
+        break;
     default:
         break;
     }

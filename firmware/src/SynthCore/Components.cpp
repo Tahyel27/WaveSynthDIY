@@ -380,6 +380,38 @@ int Synth::op_add(Instruction inst, Context &ctx)
     return 0;
 }
 
+int Synth::op_mul(Instruction inst, Context &ctx)
+{
+    // MUL, reg: op1, reg: op2, reg: result
+    float_t * out = ctx.get_scalar(inst.op3);
+    *out = *ctx.get_scalar(inst.op1) * *ctx.get_scalar(inst.op2);
+    return 0;
+}
+
+int Synth::op_add_sb(Instruction inst, Context &ctx)
+{
+    // ADD_SB, reg: op1, reg: op2, reg: result
+    auto buf1 = ctx.get_short_buffer(inst.op1);
+    auto buf2 = ctx.get_short_buffer(inst.op2);
+    auto out = ctx.get_short_buffer(inst.op3);
+
+    out.first() = buf1.first() + buf2.first();
+    out.second() = buf1.second() + buf2.second();
+    return 0;
+}
+
+int Synth::op_mul_sb(Instruction inst, Context &ctx)
+{
+    // MUL_SB, reg: op1, reg: op2, reg: result
+    auto buf1 = ctx.get_short_buffer(inst.op1);
+    auto buf2 = ctx.get_short_buffer(inst.op2);
+    auto out = ctx.get_short_buffer(inst.op3);
+
+    out.first() = buf1.first() * buf2.first();
+    out.second() = buf1.second() * buf2.second();
+    return 0;
+}
+
 
 int Synth::op_mix(Instruction inst, Context &ctx)
 {

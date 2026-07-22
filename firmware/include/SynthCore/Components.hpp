@@ -19,7 +19,10 @@ namespace Synth
         UNISON,
         LFOSINE,
         LFOTRI,
-        LFOSAW
+        LFOSAW,
+        MUL,
+        MUL_SB,
+        ADD_SB
     };
 
     struct Instruction 
@@ -212,4 +215,7 @@ namespace Synth
     int op_lfosine(Instruction inst, Context &ctx);
     int op_lfotri(Instruction inst, Context &ctx);
     int op_lfosaw(Instruction inst, Context &ctx);
+    int op_mul(Instruction inst, Context &ctx);
+    int op_mul_sb(Instruction inst, Context &ctx);
+    int op_add_sb(Instruction inst, Context &ctx);
 }
