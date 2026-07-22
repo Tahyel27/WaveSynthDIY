@@ -98,8 +98,14 @@ namespace Synth
     {
         float_t * m_first;
         float_t * m_second;
+        float_t m_current;
+        float_t m_increment;
+
     public:
-        ShortBufferView(float_t * first, float_t * second) : m_first(first), m_second(second) {};
+        ShortBufferView(float_t * first, float_t * second) : m_first(first), m_second(second), m_current(*first) {
+            constexpr float_t increment = 1. / static_cast<float_t>(CHUNK_SIZE);
+            m_increment = increment * (m_second - m_first);
+        };
 
         float_t & first() 
         {
@@ -109,6 +115,13 @@ namespace Synth
         float_t & second()
         {
             return *m_second;
+        }
+
+        float_t next() 
+        {
+            auto tmp = m_current;
+            m_current += m_increment;
+            return tmp;
         }
     };
 
