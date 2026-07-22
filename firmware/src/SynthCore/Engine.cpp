@@ -36,7 +36,7 @@ void Synth::SynthEngine::output(AudioBuffer buffer)
 {
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
-        buffer.write16bit(i, static_cast<int16_t>(maxamp*ctx.bufferPool->getBuffer(0)[i]), AudioBuffer::Mode::MONO);
+        buffer.write16bit(i, static_cast<int16_t>(maxamp*output_buffer[i]), AudioBuffer::Mode::MONO);
     }
 }
 
@@ -46,6 +46,8 @@ void Synth::SynthEngine::processGraph()
     for (size_t j = 0; j < CHUNKS_PER_BUFFER; j++)
     {
         processChunk(j);
+
+        std::copy_n(ctx.bufferPool->getBuffer(0), CHUNK_SIZE, &output_buffer[j*CHUNK_SIZE]);
     }
 }
 
