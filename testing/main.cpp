@@ -54,7 +54,7 @@ int main() {
     Instruction instructions[] = {
         {
             OpCode::WTOSC, 
-            Operand::Immediate_f(440.), 
+            Operand::ExternalReg(0), 
             Operand::ScalarReg(0), 
             Operand::Immediate_f(0.), 
             Operand::Immediate_u(1), 
@@ -89,6 +89,8 @@ int main() {
         }
     };
     
+    ext_reg[0].f = 800.; //WTOSC frequency
+
     order.nodeCount = 1;
     
     WTOscData osc;
