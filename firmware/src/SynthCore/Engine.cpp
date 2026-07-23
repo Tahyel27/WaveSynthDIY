@@ -20,7 +20,7 @@ void Synth::SynthEngine::output(AudioBuffer buffer)
 {
     for (size_t i = 0; i < buffer.buffsize; i++)
     {
-        buffer.write16bit(i, static_cast<int16_t>(maxamp*output_buffer[i]), AudioBuffer::Mode::MONO);
+        buffer.write16bit(i, static_cast<int16_t>(maxamp*ctx.master_output[i]), AudioBuffer::Mode::MONO);
     }
 }
 
@@ -30,13 +30,13 @@ void Synth::SynthEngine::processGraph()
     for (size_t j = 0; j < CHUNKS_PER_BUFFER; j++)
     {
         processChunk(j);
-
-        std::copy_n(ctx.bufferPool->getBuffer(0), CHUNK_SIZE, &output_buffer[j*CHUNK_SIZE]);
     }
 }
 
 void Synth::SynthEngine::processChunk(int chunk)
 {
+    ctx.current_chunk = chunk;
+    
     for (int i = 0; i < instruction_count; i++)
     {
         process_instruction(instructions[i]);
@@ -89,6 +89,9 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
         break;
     case OpCode::ADD_SB:
         op_add_sb(instruction, ctx);
+        break;
+    case OpCode::MASTER_OUT:
+        op_master_out(instruction, ctx);
         break;
     default:
         break;

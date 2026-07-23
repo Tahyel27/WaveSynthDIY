@@ -22,7 +22,8 @@ namespace Synth
         LFOSAW,
         MUL,
         MUL_SB,
-        ADD_SB
+        ADD_SB,
+        MASTER_OUT
     };
 
     struct Instruction 
@@ -85,4 +86,5 @@ namespace Synth
     int op_mul(Instruction inst, Context &ctx);
     int op_mul_sb(Instruction inst, Context &ctx);
     int op_add_sb(Instruction inst, Context &ctx);
+    int op_master_out(Instruction inst, Context &ctx);
 }

@@ -108,10 +108,15 @@ int main() {
             Operand::BufferReg(1),       // Filtered audio
             Operand::BufferReg(2),       // Envelope
             Operand::BufferReg(0)        // Final Output
+        },
+        /// 8. MASTER_OUT: Output audio to master buffer
+        {
+            OpCode::MASTER_OUT,
+            Operand::BufferReg(0)
         }
     };
 
-    engine.set_instructions(instructions, 7);
+    engine.set_instructions(instructions, 8);
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();

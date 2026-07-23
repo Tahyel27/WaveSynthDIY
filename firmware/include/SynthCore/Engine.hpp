@@ -22,8 +22,6 @@ private:
     std::array<Instruction, MAX_INSTRUCTION_COUNT> instructions;
     uint16_t instruction_count = 0;
 
-    std::array<float_t, BUFFER_SIZE> output_buffer;
-
     void output(AudioBuffer buffer);
 
     void processGraph();

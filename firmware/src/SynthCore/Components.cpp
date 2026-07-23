@@ -530,3 +530,17 @@ int Synth::op_lfosaw(Instruction inst, Context &ctx)
 
     return 0;
 }
+
+int Synth::op_master_out(Instruction inst, Context &ctx)
+{
+    float_t * buffer = ctx.get_buffer(inst.op1);
+    float_t * master = ctx.get_master();
+
+    std::copy_n(buffer, CHUNK_SIZE, master);
+    /*for (int i = 0; i < CHUNK_SIZE; i++)
+    {
+        master[i] = buffer[i];
+    }*/
+
+    return 0;
+}

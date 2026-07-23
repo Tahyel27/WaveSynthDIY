@@ -199,7 +199,9 @@ namespace Synth
 
     struct Context
     {
-        std::array<RegisterData, REGISTER_SIZE> scalar_reg{};
+        alignas(32) std::array<RegisterData, REGISTER_SIZE> scalar_reg{};
+        alignas(32) std::array<float_t, BUFFER_SIZE> master_output{};
+        int current_chunk;
 
         ShortBufferPool *short_buf_pool;
         BufferPool *bufferPool;
@@ -281,6 +283,11 @@ namespace Synth
                 return ShortBufferView{nullptr, nullptr};
             }
 
+        }
+
+        float_t * get_master()
+        {
+            return &master_output[CHUNK_SIZE * current_chunk];
         }
     };
 
