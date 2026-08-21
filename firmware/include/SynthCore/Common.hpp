@@ -289,6 +289,25 @@ namespace Synth
         {
             return &master_output[CHUNK_SIZE * current_chunk];
         }
+
+        void set_frequency(float_t freq)
+        {
+            //Sets the frequency of the sound, frequency is stored in scalar register 0
+            scalar_reg[0].f = freq;
+        }
+
+        void set_velocity(float_t vel)
+        {
+            //sets the velocity of the sound, by convention it is scalar register 1
+            scalar_reg[1].f = vel;
+        }
+
+        void set_gate(bool gate)
+        {
+            //sets the gate, by convention it is scalar register 2
+            if(gate) scalar_reg[2].f = 1.f; 
+            else scalar_reg[2].f = 0.f;
+        }
     };
 
 } // namespace Synth

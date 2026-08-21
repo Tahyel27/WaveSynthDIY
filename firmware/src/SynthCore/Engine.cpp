@@ -10,6 +10,13 @@ void SynthEngine::audioCallback(AudioBuffer Buffer)
     output(Buffer);
 }
 
+void Synth::SynthEngine::write_buffer(float_t * buff)
+{
+    processGraph();
+    
+    std::copy_n(ctx.master_output.data(), BUFFER_SIZE, buff);
+}
+
 void Synth::SynthEngine::set_instructions(Instruction *instruct_array, uint16_t count)
 {
     std::copy_n(instruct_array, count, instructions.begin());

@@ -42,6 +42,10 @@ private:
 
     void set_instructions(Instruction * instruct_array, uint16_t count);
 
+    void write_buffer(float_t * buff);
+
+    Context & get_ctx() { return ctx; };
+
     virtual void audioCallback(AudioBuffer Buffer) override;
 };
 
