@@ -73,14 +73,22 @@ public:
 
 void PolyphonyManager::activate_voice(int ID)
 {
+    if (voices[ID].state == VoiceState::INACTIVE)
+    {
+        active_voices++;
+    }
     voices[ID].state = VoiceState::PRESSED;
-    active_voices++;
+    voices[ID].release_timer = 0;
 }
 
 void PolyphonyManager::deactivate_voice(int ID)
 {
+    if (voices[ID].state != VoiceState::INACTIVE)
+    {
+        active_voices--;
+    }
     voices[ID].state = VoiceState::INACTIVE;
-    active_voices--;
+    voices[ID].release_timer = 0;
 }
 
 void PolyphonyManager::render_audio(float_t * out_buffer)
@@ -99,7 +107,7 @@ void PolyphonyManager::render_audio(float_t * out_buffer)
 
             if (voice.state == VoiceState::RELEASING)
             {
-                if (voice.release_timer > release_wait_time)
+                if (voice.release_timer >= release_wait_time)
                 {
                     voice.release_timer = 0;
                     voice.state = VoiceState::INACTIVE;
@@ -119,16 +127,39 @@ void PolyphonyManager::render_audio(float_t * out_buffer)
 //in case of no free voices returns -1
 int PolyphonyManager::play_note(float_t frequency, float_t velocity)
 {
+    int target_voice = -1;
+
+    // 1. Try finding an INACTIVE voice
     for (int i = 0; i < VOICE_COUNT; i++)
     {
         if (voices[i].state == VoiceState::INACTIVE)
         {
-            voices[i].engine.get_ctx().set_frequency(frequency);
-            voices[i].engine.get_ctx().set_velocity(velocity);
-            voices[i].engine.get_ctx().set_gate(true);
-            activate_voice(i);
-            return i;
+            target_voice = i;
+            break;
         }
+    }
+
+    // 2. If no INACTIVE voice, reuse the voice furthest in its release phase
+    if (target_voice == -1)
+    {
+        uint32_t max_release = 0;
+        for (int i = 0; i < VOICE_COUNT; i++)
+        {
+            if (voices[i].state == VoiceState::RELEASING && voices[i].release_timer >= max_release)
+            {
+                max_release = voices[i].release_timer;
+                target_voice = i;
+            }
+        }
+    }
+
+    if (target_voice != -1)
+    {
+        voices[target_voice].engine.get_ctx().set_frequency(frequency);
+        voices[target_voice].engine.get_ctx().set_velocity(velocity);
+        voices[target_voice].engine.get_ctx().set_gate(true);
+        activate_voice(target_voice);
+        return target_voice;
     }
 
     return -1;
@@ -136,14 +167,21 @@ int PolyphonyManager::play_note(float_t frequency, float_t velocity)
 
 void PolyphonyManager::release_note(int ID)
 {
-    voices[ID].engine.get_ctx().set_gate(false);
-    voices[ID].state = VoiceState::RELEASING;
+    if (ID >= 0 && ID < VOICE_COUNT)
+    {
+        voices[ID].engine.get_ctx().set_gate(false);
+        voices[ID].state = VoiceState::RELEASING;
+        voices[ID].release_timer = 0;
+    }
 }
 
 void PolyphonyManager::stop_note(int ID)
 {
-    voices[ID].engine.get_ctx().set_gate(false);
-    deactivate_voice(ID);
+    if (ID >= 0 && ID < VOICE_COUNT)
+    {
+        voices[ID].engine.get_ctx().set_gate(false);
+        deactivate_voice(ID);
+    }
 }
 
 void PolyphonyManager::set_release_samples(uint32_t release_t)
