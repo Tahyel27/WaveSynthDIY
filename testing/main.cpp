@@ -131,6 +131,7 @@ int main() {
     };
 
     manager.set_instructions(instructions, 9);
+    manager.set_release_samples(static_cast<uint32_t>(0.5f * Synth::SPS));
 
     std::cout << "Initializing PortAudio...\n";
     PaError err = Pa_Initialize();
