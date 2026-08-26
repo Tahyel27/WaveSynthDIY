@@ -6,6 +6,7 @@
 #include "SynthCore/Engine.hpp"
 #include "SynthCore/Patches.hpp"
 #include "PolyphonyManager.hpp"
+#include "EffectStack.hpp"
 
 using namespace Synth;
 
@@ -22,6 +23,11 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
     if (framesPerBuffer == Synth::BUFFER_SIZE) {
         alignas(32) float_t float_buf[Synth::BUFFER_SIZE];
         manager->render_audio(float_buf);
+
+        //effect stack test
+        const auto fx_stack_cfg = EffectStackConfig{.hard_clip = true, .hard_clip_gain = 0.9f};
+        auto fx_stack = EffectStack(fx_stack_cfg);
+        fx_stack.apply_effects(float_buf);
 
         AudioBuffer ab;
         ab.buffer = out;
