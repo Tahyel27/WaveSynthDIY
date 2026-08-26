@@ -8,6 +8,7 @@
 #include "PolyphonyManager.hpp"
 #include "EffectStack.hpp"
 #include "AudioStack.hpp"
+#include "AudioCommands.hpp"
 
 using namespace Synth;
 
