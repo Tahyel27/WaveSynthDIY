@@ -7,6 +7,7 @@
 #include "SynthCore/Patches.hpp"
 #include "PolyphonyManager.hpp"
 #include "EffectStack.hpp"
+#include "AudioStack.hpp"
 
 using namespace Synth;
 
@@ -17,17 +18,10 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
                       PaStreamCallbackFlags statusFlags,
                       void *userData)
 {
-    PolyphonyManager* manager = static_cast<PolyphonyManager*>(userData);
+    AudioStack* stack = static_cast<AudioStack*>(userData);
     uint32_t* out = static_cast<uint32_t*>(outputBuffer);
 
     if (framesPerBuffer == Synth::BUFFER_SIZE) {
-        alignas(32) float_t float_buf[Synth::BUFFER_SIZE];
-        manager->render_audio(float_buf);
-
-        //effect stack test
-        const auto fx_stack_cfg = EffectStackConfig{.hard_clip = true, .hard_clip_gain = 0.9f};
-        auto fx_stack = EffectStack(fx_stack_cfg);
-        fx_stack.apply_effects(float_buf);
 
         AudioBuffer ab;
         ab.buffer = out;
@@ -35,9 +29,7 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
         ab.SPS = Synth::SPS; 
         ab.maxamp = Synth::maxamp; 
 
-        for (size_t i = 0; i < framesPerBuffer; i++) {
-            ab.write16bit(i, static_cast<int16_t>(Synth::maxamp * float_buf[i]), AudioBuffer::Mode::MONO);
-        }
+        stack->audioCallback(ab);
     } else {
         for (unsigned int i = 0; i < framesPerBuffer * 2; ++i) {
             out[i] = 0;
@@ -55,6 +47,8 @@ int main() {
     ScalarRegister ext_reg;
 
     PolyphonyManager manager{&pool, &short_pool, &ext_reg};
+    EffectStack fx_stack{EffectStackConfig{.hard_clip = true, .hard_clip_gain = 1.0f} };
+    auto audio_stack = AudioStack(manager, fx_stack);
 
     // Instruction patch designed for PolyphonyManager:
     // Frequency is passed in ScalarReg(0) via play_note()
@@ -154,7 +148,7 @@ int main() {
                                Synth::SPS,         /* sample rate */
                                Synth::BUFFER_SIZE, /* frames per buffer */
                                paCallback,
-                               &manager);
+                               &audio_stack);
                                
     if (err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << "\n";
