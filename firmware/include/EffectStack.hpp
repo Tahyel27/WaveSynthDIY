@@ -1,3 +1,5 @@
+#pragma once
+
 #include "SynthCore/Common.hpp"
 #include <cmath>
 
