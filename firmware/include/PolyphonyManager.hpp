@@ -69,6 +69,8 @@ public:
     void stop_note(int ID);
 
     void set_release_samples(uint32_t release_t);
+
+    ScalarRegister * get_external_register() { return ext_register; };
 };
 
 void PolyphonyManager::activate_voice(int ID)
