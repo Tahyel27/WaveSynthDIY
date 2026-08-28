@@ -1,13 +1,48 @@
 #pragma once
 
+#include <optional>
+
+enum class EventType
+{
+    BUTTON_PRESS,
+    BUTTON_RELEASE,
+    ENCODER_TURN,
+    DIAL_CHANGE
+};
+
+union EventValue
+{
+    float_t f;
+    int i;
+};
+
 struct Event
 {
-    enum class Type {
-        BUTTON_PRESS,
-        BUTTON_RELEASE,
-        ENCODER_LEFT,
-        ENCODER_RIGHT
-    };
-    Type type;
-    int ID;
+    bool is_type(EventType type)
+    {
+        return type == m_type;
+    }
+
+    int get_button_press()
+    {
+        return m_value.i;
+    }
+
+    int get_button_release()
+    {
+        return m_value.i;
+    }
+
+    int get_encoder_turn()
+    {
+        return m_value.i;
+    }
+
+    float_t get_dial_change()
+    {
+        return m_value.f;
+    }
+private:
+    EventType m_type;
+    EventValue m_value;
 };
