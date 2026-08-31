@@ -42,7 +42,7 @@ int main()
     poly_manager.set_instructions(patch.instructions, 9);
 
     device.setSource(&audio_stack);
-    
+
 
     //data 19, clk 20, latch 21
     auto btnarr = ButtonArray(19, 20, 21);
@@ -84,6 +84,11 @@ int main()
     auto queue = staticQueue<Event, 20>();
 
     auto encoderArr = EncoderArray(5, 4, 3);
+
+
+
+    int noteA = 0;
+    int noteB = 0;
 
     while (true)
     {
@@ -143,11 +148,9 @@ int main()
             HWProfiler::putLO();
             timer++;
 
-            int noteA = 0;
-            int noteB = 0;
-
             if (timer == 200)
             {
+                printf("t = 200\n");
                 noteA = poly_manager.play_note(200.0f);
             }
 
