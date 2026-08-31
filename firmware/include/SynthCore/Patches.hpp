@@ -20,10 +20,14 @@ namespace Synth
                 Operand::Immediate_u(0), // will be replaced
                 Operand::Immediate_f(0.), 
                 Operand::BufferReg(0)
+            },
+            {
+                OpCode::MASTER_OUT,
+                Operand::BufferReg(0)
             }
         };
         instructions[0].op5.value.u = wtindex;
-        return {instructions, 1};
+        return {instructions, 2};
     }
 
     inline PatchDef createSimpleWTPatchWithADSR()
@@ -31,8 +35,8 @@ namespace Synth
         static Instruction instructions[] = {
             {
                 OpCode::WTOSC, 
-                Operand::Immediate_f(200.), 
                 Operand::ScalarReg(0), 
+                Operand::ScalarReg(10), 
                 Operand::Immediate_f(0.), 
                 Operand::Immediate_u(1), 
                 Operand::Immediate_f(0.), 
@@ -40,13 +44,13 @@ namespace Synth
             },
             {
                 OpCode::ADSR,
-                Operand::Immediate_f(1.0f), 
-                Operand::ScalarReg(1), 
                 Operand::ScalarReg(2), 
-                Operand::Immediate_f(0.05f), 
+                Operand::ScalarReg(3), 
+                Operand::ScalarReg(4), 
                 Operand::Immediate_f(0.1f), 
-                Operand::Immediate_f(0.5f), // sustain
-                Operand::Immediate_f(0.0f), 
+                Operand::Immediate_f(0.3f), 
+                Operand::Immediate_f(0.6f), // sustain
+                Operand::Immediate_f(0.5f), 
                 Operand::BufferReg(2)
             },
             {
@@ -54,9 +58,13 @@ namespace Synth
                 Operand::BufferReg(1), 
                 Operand::BufferReg(2), 
                 Operand::BufferReg(0)
+            },
+            {
+                OpCode::MASTER_OUT,
+                Operand::BufferReg(0)
             }
         };
-        return {instructions, 3};
+        return {instructions, 4};
     }
 
     inline PatchDef createWTPatchwithFilter()
@@ -79,14 +87,18 @@ namespace Synth
                 Operand::Immediate_f(2500.), 
                 Operand::Immediate_f(0.1f), 
                 Operand::BufferReg(0)
+            },
+            {
+                OpCode::MASTER_OUT,
+                Operand::BufferReg(0)
             }
         };
-        return {instructions, 2};
+        return {instructions, 3};
     }
 
     inline PatchDef create_testing_patch()
     {
-        Instruction instructions[] = {
+        static Instruction instructions[] = {
             // 1. Audio source: WTOSC using frequency from ScalarReg(0)
             {
                 OpCode::WTOSC, 
