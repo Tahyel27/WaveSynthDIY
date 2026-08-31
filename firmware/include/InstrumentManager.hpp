@@ -3,7 +3,7 @@
 #include <SynthCore/Engine.hpp>
 #include <SynthCore/Components.hpp>
 
-class InstrumentManager
+/*class InstrumentManager
 {
 private:
     static constexpr int INSTRUMENT_COUNT = 3;
@@ -47,4 +47,4 @@ void InstrumentManager::updateInstrument(Func func, int instrument)
             func(engine->getDataRef(i));
         }
     }
-}
+}*/

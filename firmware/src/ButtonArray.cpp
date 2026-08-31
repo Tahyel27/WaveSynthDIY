@@ -219,12 +219,12 @@ bool EncoderArray::pollEncoder(int i, Event &ev, uint32_t word)
     int rot = read_encoder(i, word);
     if (rot == -1)
     {
-        ev = Event{Event::Type::ENCODER_LEFT, i};
+        ev = Event{.m_type = EventType::ENCODER_TURN, -1};
         return true;
     }
     else if (rot == 1)
     {
-        ev = Event{Event::Type::ENCODER_RIGHT, i};
+        ev = Event{.m_type = EventType::ENCODER_TURN, 1};
         return true;
     }
     else

@@ -12,7 +12,7 @@ enum class EventType
 
 union EventValue
 {
-    float_t f;
+    float f;
     int i;
 };
 
@@ -38,11 +38,11 @@ struct Event
         return m_value.i;
     }
 
-    float_t get_dial_change()
+    float get_dial_change()
     {
         return m_value.f;
     }
-private:
+    
     EventType m_type;
     EventValue m_value;
 };

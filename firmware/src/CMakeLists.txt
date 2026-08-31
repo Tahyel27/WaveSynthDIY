@@ -1,4 +1,4 @@
-add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp InstrumentManager.cpp)
+add_executable(${NAME} main.cpp ButtonArray.cpp AnalogArray.cpp)
 
 add_subdirectory(SynthCore)
 
@@ -27,7 +27,6 @@ target_link_libraries(${NAME}
         hardware_adc
         WavetableSynth
         Engine
-        Controller
 )
 
 set_target_properties(${NAME} PROPERTIES

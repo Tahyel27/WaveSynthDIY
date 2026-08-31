@@ -8,42 +8,11 @@
 #include "WavetableSynth.hpp"
 #include <SynthCore/Engine.hpp>
 #include <SynthCore/Patches.hpp>
-#include <InstrumentManager.hpp>
-#include <Controller/Controller.hpp>
 #include "ADSR.hpp"
 #include "HWProfiler.hpp"
 #include "Events.hpp"
 #include "StaticQueue.hpp"
-
-struct sineSynth
-{
-    uint64_t samplecounter;
-
-    int16_t operator()(double f, int amp, uint64_t SPS)
-    {
-        double t = double(samplecounter)/double(SPS);
-        samplecounter += 1*f;
-        if (samplecounter > SPS)
-        {
-            samplecounter = samplecounter - SPS;
-        }
-        
-        return amp*sin(2*t*M_PI);
-    }
-};
-
-struct sineSource : public AudioSource
-{
-    sineSynth synth;
-    
-    void audioCallback(AudioBuffer buffer) override
-    {
-        for (size_t i = 0; i < buffer.buffsize; i++)
-        {
-            buffer.write16bit(i, synth(440, buffer.maxamp / 4, buffer.SPS), AudioBuffer::Mode::MONO);
-        }
-    }
-};
+#include "AudioStack.hpp"
 
 int main()
 {
@@ -60,56 +29,42 @@ int main()
     if (!device_opt.has_value()) return -1;
 
     auto device = std::move(device_opt.value());
+
+    auto buffer_pool = BufferPool();
+    auto short_buffer_pool = ShortBufferPool();
+    auto ext_register = ScalarRegister();
+
+    auto poly_manager = PolyphonyManager(&buffer_pool, &short_buffer_pool, &ext_register);
+    auto fx_stack = EffectStack(EffectStackConfig{.hard_clip = true, .hard_clip_gain = 1.0f});
+    auto audio_stack = AudioStack(poly_manager, fx_stack);
+
+    auto patch = Synth::create_testing_patch();
+    poly_manager.set_instructions(patch.instructions, 9);
+
+    device.setSource(&audio_stack);
     
 
     //data 19, clk 20, latch 21
     auto btnarr = ButtonArray(19, 20, 21);
 
-    auto engine = Synth::SynthEngine();
     /*auto [data, ord] = engine.getDataForVoiceRef(0);
     Synth::createPatchAlgo1(data, ord, 70, 1200, 0.15);
     engine.startVoice(0);
     engine.setDelay(false);*/
-    engine.setDelay(true);
 
     auto analog = AnalogArray(16, 17, 18, 26);
 
-    auto seq = Sequencer(&engine);
 
-    //InstrumentManager manager(&engine);
-    auto manager = seq.getManager();
-
-    Synth::Data data; Synth::NodeOrder ord;
-    //Synth::createPatchAlgo1(data, ord, 70, 1200, 0.15);
-    Synth::createPatchAlgo2(data, ord);
-    //Synth::createSimpleWTPatch(data, ord, 0);
-    //Synth::createWTPatchwithFilter(data, ord);
-
-    manager->setInstrument(data, ord, 0);
     //manager.playFrequency(100, 0, 1);
 
     //device.setSource(&sine);
 
-    device.setSource(&engine);
+
 
     printf("start device init\n");
 
 
     int timer = 0;
-
-    manager->updateInstrument([](Synth::Data &d){
-        d.SVFArr[0].fenv = 2000;
-        d.SVFArr[0].Q = 0.2;
-        d.WTOscArr[0].wtIndex = 1;
-        d.WTOscArr[0].unison = 1;
-        d.WTOscArr[0].detune.v = 0.6;
-        d.WTOscArr[0].phaseDistMod.v = 0;
-        d.ADSRArr[0].sustain = 0;
-        d.ADSRArr[0].decay = 0.2;
-        d.ADSRArr[1].attack = 0.;
-        d.ADSRArr[1].sustain = 0;
-        d.ADSRArr[1].decay = 0.7;
-    },0);
 
     //manager.playFrequency(440, 0, 1);
     //manager.playFrequency(200, 0, 2);
@@ -188,30 +143,33 @@ int main()
             HWProfiler::putLO();
             timer++;
 
-            if (timer == 100)
-            {
-                manager->release(1);
-            }
+            int noteA = 0;
+            int noteB = 0;
 
             if (timer == 200)
             {
-                manager->playFrequency(200, 0, 1);
+                noteA = poly_manager.play_note(200.0f);
             }
 
             if (timer == 250)
             {
-                manager->playFrequency(400, 0, 2);
+                noteB = poly_manager.play_note(400.0f);
             }
 
             if (timer == 300)
             {
-                manager->release(1);
-                manager->release(2);
+                poly_manager.release_note(noteA);
+                poly_manager.release_note(noteB);
             }
 
             if (timer == 400)
             {
-                manager->playFrequency(100, 0, 1);
+                noteA = poly_manager.play_note(100.0f);
+            }
+
+            if (timer == 500)
+            {
+                poly_manager.release_note(noteA);
                 timer = 0;
             }
         }
