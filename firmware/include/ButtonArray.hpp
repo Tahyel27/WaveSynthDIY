@@ -36,7 +36,7 @@ public:
     bool isPressed(int button);
 
     static std::optional<ButtonArray> claim(uint datapin, uint clockpin, uint latchpin);
-    
+
     ButtonArray(ButtonArray &&other) : pio(std::move(other.pio)), prev_state(other.prev_state) {};
     ButtonArray &operator=(ButtonArray &&other) 
     {
@@ -91,12 +91,14 @@ struct RotaryEncoder
     uint pinA;
     uint pinB;
     bool state = false;
-    bool A;
-    bool B;
+    bool A = false;
+    bool B = false;
 };
 
 class EncoderArray
 {
+    EncoderArray() = default;
+    
     struct Pins
     {
         uint clock;
@@ -105,18 +107,10 @@ class EncoderArray
     };
     Pins pins;
 
-    struct PioData
-    {
-        PIO pio;
-        uint sm;
-        uint offset;
-    };
-    PioData pio;
+    PioHandler pio;
 
     static constexpr int ENCODER_COUNT = 4;
     std::array<RotaryEncoder, ENCODER_COUNT> encoders;
-
-    void init_prorgram();
 
     int read_encoder(int i, uint32_t word);
 
@@ -127,8 +121,19 @@ class EncoderArray
     void populate_encoders();
 
 public:
-    EncoderArray(uint datapin, uint latchpin, uint clockpin);
+    EncoderArray(EncoderArray &&other) : pio(std::move(other.pio))
+    {
+        std::copy(other.encoders.begin(), other.encoders.end(), encoders.begin());
+    }
+    EncoderArray &operator=(EncoderArray &&other)
+    {
+        pio = std::move(other.pio);
+        std::copy(other.encoders.begin(), other.encoders.end(), encoders.begin());
+        return *this;
+    }
     ~EncoderArray(){};
+
+    static std::optional<EncoderArray> claim(uint datapin, uint latchpin, uint clockpin);
     
     template<size_t N>
     void pollEvents(staticQueue<Event, N> &evqueue)

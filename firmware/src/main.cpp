@@ -92,9 +92,10 @@ int main()
 
     auto queue = staticQueue<Event, 20>();
 
-    auto encoderArr = EncoderArray(5, 4, 3);
+    auto encoderArr_opt = EncoderArray::claim(5, 4, 3);
+    if(!encoderArr_opt.has_value()) return -1;
 
-
+    auto encoderArr = std::move(encoderArr_opt.value());
 
     int noteA = 0;
     int noteB = 0;

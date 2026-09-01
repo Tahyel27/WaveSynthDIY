@@ -2,8 +2,9 @@
 
 bool readbit(uint32_t word, uint i)
 {
-    const uint32_t mask = ((uint32_t)0 - 1) << 31;
-    return ((word << i) & mask);
+    const uint32_t mask = 0x7FFFFFFF; // 01111111
+
+    return (word << i | mask) == 0xFFFFFFFF; // checks if the bit is high
 }
 
 std::optional<ButtonArray> ButtonArray::claim(uint datapin, uint clockpin, uint latchpin)
@@ -44,28 +45,32 @@ ButtonArray::~ButtonArray()
 
 }
 
-void EncoderArray::init_prorgram()
+std::optional<EncoderArray> EncoderArray::claim(uint datapin, uint latchpin, uint clockpin)
 {
-    pio_sm_config c = button_array_program_get_default_config(pio.offset);
+    auto encoder_array = EncoderArray{};
+    auto pio_opt = PioHandler::acquire(&button_array_program, button_array_program_get_default_config);
 
-    pio_gpio_init(pio.pio, pins.clock);
-    pio_gpio_init(pio.pio, pins.datain);
-    pio_gpio_init(pio.pio, pins.latch);
+    if (!pio_opt.has_value())
+        return std::nullopt;
+    encoder_array.pio = std::move(pio_opt.value());
 
-    pio_sm_set_consecutive_pindirs(pio.pio, pio.sm, pins.clock, 1, true);
-    pio_sm_set_consecutive_pindirs(pio.pio, pio.sm, pins.latch, 1, true);
-    pio_sm_set_consecutive_pindirs(pio.pio, pio.sm, pins.datain, 1, false);
+    encoder_array.pins.datain = datapin;
+    encoder_array.pins.clock = clockpin;
+    encoder_array.pins.latch = latchpin;
 
-    sm_config_set_in_pins(&c, pins.datain);
-    sm_config_set_set_pins(&c, pins.latch, 1);
-    sm_config_set_sideset_pins(&c, pins.clock);
+    encoder_array.populate_encoders();
 
-    sm_config_set_clkdiv_int_frac8(&c, 3, 1);
-    sm_config_set_in_shift(&c, false, false, 32); // so the closest pin is the first in the register/FIFO
+    encoder_array.pio.set_in_pins(encoder_array.pins.datain);
+    encoder_array.pio.set_set_pins(encoder_array.pins.latch);
+    encoder_array.pio.set_sideset_pins(encoder_array.pins.clock);
 
-    pio_sm_init(pio.pio, pio.sm, pio.offset, &c);
+    encoder_array.pio.set_in_shift(false, false, 32);
+    encoder_array.pio.set_clkdiv_int_frac8(3, 1);
 
-    pio_sm_set_enabled(pio.pio, pio.sm, true);
+    encoder_array.pio.init();
+    encoder_array.pio.set_enabled(true);
+
+    return encoder_array;
 }
 
 int EncoderArray::read_encoder(int i, uint32_t word)
@@ -155,9 +160,9 @@ bool EncoderArray::pollEncoder(int i, Event &ev, uint32_t word)
 
 uint32_t EncoderArray::poll()
 {
-    pio_sm_clear_fifos(pio.pio, pio.sm);
+    pio.clear_fifos();
 
-    uint32_t word = pio_sm_get_blocking(pio.pio, pio.sm);
+    uint32_t word = pio.get_blocking();
 
     return word;
 }
@@ -170,17 +175,4 @@ void EncoderArray::populate_encoders()
         encoders[i].pinB = 2*i+1;
     }
     
-}
-
-EncoderArray::EncoderArray(uint datapin, uint latchpin, uint clockpin)
-{
-    pins.clock = clockpin;
-    pins.datain = datapin;
-    pins.latch = latchpin;
-
-    populate_encoders();
-
-    pio_claim_free_sm_and_add_program(&button_array_program, &pio.pio, &pio.sm, &pio.offset);
-
-    init_prorgram();
 }
