@@ -6,75 +6,76 @@ bool readbit(uint32_t word, uint i)
     return ((word << i) & mask);
 }
 
-void ButtonArray::button_array_program_init()
+std::optional<ButtonArray> ButtonArray::claim(uint datapin, uint clockpin, uint latchpin)
 {
-    pio_sm_config c = button_array_program_get_default_config(pio.offset);
+    auto button_array = ButtonArray();
+    auto pio_opt = PioHandler::acquire(&button_array_program, button_array_program_get_default_config);
 
-    pio_gpio_init(pio.pio, pins.clock);
-    pio_gpio_init(pio.pio, pins.datain);
-    pio_gpio_init(pio.pio, pins.latch);
+    if (!pio_opt.has_value()) return std::nullopt;
+    button_array.pio = std::move(pio_opt.value());
+    
+    //sets the pins
+    button_array.pins.datain = datapin;
+    button_array.pins.clock = clockpin;
+    button_array.pins.latch = latchpin;
 
-    pio_sm_set_consecutive_pindirs(pio.pio, pio.sm, pins.clock, 1, true);
-    pio_sm_set_consecutive_pindirs(pio.pio, pio.sm, pins.latch, 1, true);
-    pio_sm_set_consecutive_pindirs(pio.pio, pio.sm, pins.datain, 1, false);
+    button_array.pio.set_in_pins(button_array.pins.datain);
+    button_array.pio.set_set_pins(button_array.pins.latch);
+    button_array.pio.set_sideset_pins(button_array.pins.clock);
 
-    sm_config_set_in_pins(&c, pins.datain);
-    sm_config_set_set_pins(&c, pins.latch, 1);
-    sm_config_set_sideset_pins(&c, pins.clock);
+    button_array.pio.set_in_shift(false, false, 32);
+    button_array.pio.set_clkdiv_int_frac8(3, 1);
 
-    sm_config_set_clkdiv_int_frac8(&c, 3, 1);
-    sm_config_set_in_shift(&c, false, false, 32); // so the closest pin is the first in the register/FIFO
-
-    pio_sm_init(pio.pio, pio.sm, pio.offset, &c);
-
-    pio_sm_set_enabled(pio.pio, pio.sm, true);
+    button_array.pio.init();
+    button_array.pio.set_enabled(true);
+        
+    return button_array;
 }
 
 void ButtonArray::poll()
 {
-    pio_sm_clear_fifos(pio.pio, pio.sm);
-    
-    uint32_t word = pio_sm_get_blocking(pio.pio, pio.sm);
+    pio.clear_fifos();
+
+    uint32_t word = pio.get_blocking();
 
     int buttons_index = 0;
-    std::array<int, MAX_BUTTONS> buttons;
-    std::fill(buttons.begin(), buttons.end(), -1);
+
+    const uint32_t mask = 0x7FFFFFFF; //01111111
 
     for (size_t i = 0; i < 32; i++)
     {
-        const uint32_t mask = 0x7FFFFFFF;
-        bool down = ((word | mask) == 0xFFFFFFFF);
-        word = word << 1;
-        if (down)
+        bool down = ((word << i | mask) == 0xFFFFFFFF); //checks if button i is currently pressed
+        if (down) //button is pressed now
         {
-            if (std::find(buttons_prev.begin(),buttons_prev.end(), i) == buttons_prev.end())
+            //the previous state of this button
+            bool down_prev = ((prev_state << i | mask) == 0xFFFFFFFF);
+            //if it wasnt pressed register a new press
+            if (!down_prev) 
             {
                 pressedQueue.push(i);
-            }    
-            buttons[buttons_index++] = i;
+            }
         }
-        else
+        else //button isnt pressed now
         {
-            if (std::find(buttons_prev.begin(),buttons_prev.end(), i ) != buttons_prev.end())
+            //the previous state of this button
+            bool down_prev = ((prev_state << i | mask) == 0xFFFFFFFF);
+            //if it was pressed before register a release
+            if (down_prev)
             {
                 releasedQueue.push(i);
             }
         }
     }
 
-    std::copy(buttons.begin(), buttons.end(), buttons_prev.begin());    
+    prev_state = word;
+
 }
 
 bool ButtonArray::isPressed(int button)
 {
-    if (std::find(buttons_prev.begin(),buttons_prev.end(),button) != buttons_prev.end())
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    const uint32_t mask = 0x7FFFFFFF; // 01111111
+
+    return (prev_state << button | mask) == 0xFFFFFFFF; //checks if the button is pressed
 }
 
 std::optional<ButtonEvent> ButtonArray::getEvent()
@@ -98,22 +99,10 @@ std::optional<ButtonEvent> ButtonArray::getEvent()
     
 }
 
-ButtonArray::ButtonArray(uint datapin, uint clockpin, uint latchpin)
-{
-    pins.clock      = clockpin;
-    pins.datain     = datapin;
-    pins.latch      = latchpin;
-
-    pio_claim_free_sm_and_add_program(&button_array_program, &pio.pio, &pio.sm, &pio.offset);
-
-    button_array_program_init();
-
-    std::fill(buttons_prev.begin(),buttons_prev.end(),-1);
-}
 
 ButtonArray::~ButtonArray()
 {
-    pio_sm_clear_fifos(pio.pio, pio.sm);
+
 }
 
 void EncoderArray::init_prorgram()

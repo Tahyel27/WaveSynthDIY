@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <StaticQueue.hpp>
 #include <Events.hpp>
+#include <PioHandler.hpp>
 
 #include "button_array.pio.h"
 
@@ -27,6 +28,8 @@ struct ButtonEvent
 class ButtonArray
 {
 private:
+    ButtonArray() = default;
+
     struct Pins
     {
         uint clock;
@@ -35,31 +38,30 @@ private:
     };
     Pins pins;
 
-    struct PIOdata
-    {
-        PIO pio;
-        uint sm;
-        uint offset;
-    };
-    PIOdata pio;
+    PioHandler pio;
 
-    static const uint MAX_BUTTONS = 256;
-    std::array<int, MAX_BUTTONS> buttons_prev;
+    uint32_t prev_state = 0;
 
     std::queue<int> pressedQueue;
     std::queue<int> releasedQueue;
 
     int deviceID;
-
-    void button_array_program_init();
 public:
     void poll();
 
     bool isPressed(int button);
 
+    static std::optional<ButtonArray> claim(uint datapin, uint clockpin, uint latchpin);
+
     std::optional<ButtonEvent> getEvent();
 
-    ButtonArray(uint datapin, uint clockpin, uint latchpin);
+    ButtonArray(ButtonArray &&other) : pio(std::move(other.pio)), prev_state(other.prev_state) {};
+    ButtonArray &operator=(ButtonArray &&other) 
+    {
+        pio = std::move(other.pio);
+        prev_state = other.prev_state;
+        return *this;
+    }
     ~ButtonArray();
 };
 
@@ -120,4 +122,5 @@ public:
             }
         }
     };
+
 };

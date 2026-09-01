@@ -45,7 +45,16 @@ int main()
 
 
     //data 19, clk 20, latch 21
-    auto btnarr = ButtonArray(19, 20, 21);
+    //auto btnarr = ButtonArray(19, 20, 21);
+
+    auto btnarr_opt = ButtonArray::claim(19,20,21);
+    if (!btnarr_opt.has_value())
+    {
+        return -1;
+    }
+
+    auto btnarr = std::move(btnarr_opt.value());
+    
 
     /*auto [data, ord] = engine.getDataForVoiceRef(0);
     Synth::createPatchAlgo1(data, ord, 70, 1200, 0.15);
@@ -144,13 +153,23 @@ int main()
                     printf("RIGHT Encoder value: %d\n", ev.ID);
                 }
             }*/
-            
+
+            btnarr.poll();
+            auto b = btnarr.getEvent();
+            while (b.has_value())
+            {
+                printf("button %d ", b.value().button);
+                if (b.value().type == ButtonEvent::Type::PRESSED) 
+                    printf("pressed\n"); else printf("released\n");
+
+                b = btnarr.getEvent();
+            }
+
             HWProfiler::putLO();
             timer++;
 
             if (timer == 200)
             {
-                printf("t = 200\n");
                 noteA = poly_manager.play_note(200.0f);
             }
 
