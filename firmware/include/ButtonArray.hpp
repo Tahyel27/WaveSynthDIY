@@ -14,16 +14,6 @@
 
 #include "button_array.pio.h"
 
-struct ButtonEvent
-{
-    int button;
-    int deviceId;
-    enum class Type{
-        PRESSED,
-        RELEASED
-    };
-    Type type;
-};
 
 class ButtonArray
 {
@@ -46,9 +36,7 @@ public:
     bool isPressed(int button);
 
     static std::optional<ButtonArray> claim(uint datapin, uint clockpin, uint latchpin);
-
-    std::optional<ButtonEvent> getEvent();
-
+    
     ButtonArray(ButtonArray &&other) : pio(std::move(other.pio)), prev_state(other.prev_state) {};
     ButtonArray &operator=(ButtonArray &&other) 
     {
