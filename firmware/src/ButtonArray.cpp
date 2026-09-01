@@ -32,73 +32,12 @@ std::optional<ButtonArray> ButtonArray::claim(uint datapin, uint clockpin, uint 
     return button_array;
 }
 
-void ButtonArray::poll()
-{
-    pio.clear_fifos();
-
-    uint32_t word = pio.get_blocking();
-
-    int buttons_index = 0;
-
-    const uint32_t mask = 0x7FFFFFFF; //01111111
-
-    for (size_t i = 0; i < 32; i++)
-    {
-        bool down = ((word << i | mask) == 0xFFFFFFFF); //checks if button i is currently pressed
-        if (down) //button is pressed now
-        {
-            //the previous state of this button
-            bool down_prev = ((prev_state << i | mask) == 0xFFFFFFFF);
-            //if it wasnt pressed register a new press
-            if (!down_prev) 
-            {
-                pressedQueue.push(i);
-            }
-        }
-        else //button isnt pressed now
-        {
-            //the previous state of this button
-            bool down_prev = ((prev_state << i | mask) == 0xFFFFFFFF);
-            //if it was pressed before register a release
-            if (down_prev)
-            {
-                releasedQueue.push(i);
-            }
-        }
-    }
-
-    prev_state = word;
-
-}
-
 bool ButtonArray::isPressed(int button)
 {
     const uint32_t mask = 0x7FFFFFFF; // 01111111
 
     return (prev_state << button | mask) == 0xFFFFFFFF; //checks if the button is pressed
 }
-
-std::optional<ButtonEvent> ButtonArray::getEvent()
-{
-    if (!pressedQueue.empty())
-    {
-        int button = pressedQueue.front();
-        pressedQueue.pop();
-        return ButtonEvent{button,deviceID, ButtonEvent::Type::PRESSED};
-    }
-    else if (!releasedQueue.empty())
-    {
-        int button = releasedQueue.front();
-        releasedQueue.pop();
-        return ButtonEvent{button, deviceID, ButtonEvent::Type::RELEASED};
-    }
-    else
-    {
-        return std::nullopt;
-    }
-    
-}
-
 
 ButtonArray::~ButtonArray()
 {

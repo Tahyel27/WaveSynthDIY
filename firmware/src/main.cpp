@@ -154,15 +154,16 @@ int main()
                 }
             }*/
 
-            btnarr.poll();
-            auto b = btnarr.getEvent();
-            while (b.has_value())
+            btnarr.poll(queue);
+            while (!queue.empty())
             {
-                printf("button %d ", b.value().button);
-                if (b.value().type == ButtonEvent::Type::PRESSED) 
-                    printf("pressed\n"); else printf("released\n");
-
-                b = btnarr.getEvent();
+                auto ev = queue.pop();
+                
+                if (ev.is_type(EventType::BUTTON_PRESS))
+                    printf("button %d pressed\n", ev.get_button_press());
+                if (ev.is_type(EventType::BUTTON_RELEASE))
+                    printf("button %d released\n", ev.get_button_release());
+                
             }
 
             HWProfiler::putLO();

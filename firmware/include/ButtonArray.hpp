@@ -41,13 +41,7 @@ private:
     PioHandler pio;
 
     uint32_t prev_state = 0;
-
-    std::queue<int> pressedQueue;
-    std::queue<int> releasedQueue;
-
-    int deviceID;
 public:
-    void poll();
 
     bool isPressed(int button);
 
@@ -63,6 +57,45 @@ public:
         return *this;
     }
     ~ButtonArray();
+
+    template<size_t N>
+    void poll(staticQueue<Event, N> &event_queue)
+    {
+        pio.clear_fifos();
+
+        uint32_t word = pio.get_blocking();
+
+        int buttons_index = 0;
+
+        const uint32_t mask = 0x7FFFFFFF; // 01111111
+
+        for (size_t i = 0; i < 32; i++)
+        {
+            bool down = ((word << i | mask) == 0xFFFFFFFF); // checks if button i is currently pressed
+            if (down)                                       // button is pressed now
+            {
+                // the previous state of this button
+                bool down_prev = ((prev_state << i | mask) == 0xFFFFFFFF);
+                // if it wasnt pressed register a new press
+                if (!down_prev)
+                {
+                    event_queue.push(Event::button_press(i));
+                }
+            }
+            else // button isnt pressed now
+            {
+                // the previous state of this button
+                bool down_prev = ((prev_state << i | mask) == 0xFFFFFFFF);
+                // if it was pressed before register a release
+                if (down_prev)
+                {
+                    event_queue.push(Event::button_release(i));
+                }
+            }
+        }
+
+        prev_state = word;
+    }
 };
 
 struct RotaryEncoder
