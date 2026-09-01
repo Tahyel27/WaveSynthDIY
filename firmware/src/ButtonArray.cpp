@@ -33,17 +33,8 @@ void ButtonArray::button_array_program_init()
 void ButtonArray::poll()
 {
     pio_sm_clear_fifos(pio.pio, pio.sm);
-    char loopcounter = 0;
-    while (pio_sm_get_rx_fifo_level(pio.pio, pio.sm) < 2)
-    {
-        if (loopcounter > 50)
-        {
-            break;
-        }
-        loopcounter++;
-    }
+    
     uint32_t word = pio_sm_get_blocking(pio.pio, pio.sm);
-    word = pio_sm_get_blocking(pio.pio, pio.sm);
 
     int buttons_index = 0;
     std::array<int, MAX_BUTTONS> buttons;
@@ -238,17 +229,7 @@ uint32_t EncoderArray::poll()
 {
     pio_sm_clear_fifos(pio.pio, pio.sm);
 
-    char loopcounter = 0;
-    while (pio_sm_get_rx_fifo_level(pio.pio, pio.sm) < 2)
-    {
-        if (loopcounter > 50)
-        {
-            break;
-        }
-        loopcounter++;
-    }
     uint32_t word = pio_sm_get_blocking(pio.pio, pio.sm);
-    word = pio_sm_get_blocking(pio.pio, pio.sm);
 
     return word;
 }
