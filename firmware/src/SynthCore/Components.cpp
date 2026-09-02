@@ -257,10 +257,17 @@ int Synth::op_ampl(Instruction inst, Context &ctx)
 int Synth::op_adsr(Instruction inst, Context &ctx)
 {
     // ADSR, reg1: signal, reg2: state, reg3: time, reg4: attack, reg5: decay, reg6: sustain, reg7: release, reg8: out
+    if (inst.op8.type == OperandType::SHORTBUF_REG) 
+    {
+        return op_adsr_sb(inst, ctx);
+    }
+
     float_t gate = 0.0f;
     if (inst.op1.type == OperandType::SHORTBUF_REG) gate = ctx.get_short_buffer(inst.op1).first();
     else if (inst.op1.type == OperandType::BUFFER_REG) gate = ctx.get_buffer(inst.op1)[0];
     else gate = *ctx.get_scalar(inst.op1);
+
+    
 
     uint32_t *state_reg = ctx.get_uint32(inst.op2);
     float_t *env_val = ctx.get_scalar(inst.op3); // 'time' register stores current amplitude
@@ -283,9 +290,9 @@ int Synth::op_adsr(Instruction inst, Context &ctx)
     }
 
     float_t current_val = *env_val;
-    float_t attack_rate = dt / (attack + 1e-5f);
-    float_t decay_rate = (1.0f - sustain) * dt / (decay + 1e-5f);
-    float_t release_rate = dt / (release + 1e-5f);
+    float_t attack_rate = dt / (attack + 1e-5f); //to prevent division by zero at attack = 0
+    float_t decay_rate = (1.0f - sustain) * dt / (decay + 1e-5f); //same 
+    float_t release_rate = dt / (release + 1e-5f); //same
 
     for (size_t i = 0; i < CHUNK_SIZE; i++)
     {
@@ -326,6 +333,93 @@ int Synth::op_adsr(Instruction inst, Context &ctx)
         }
 
         outbuffer[i] = current_val;
+    }
+
+    *env_val = current_val;
+    *state_reg = static_cast<uint32_t>(state);
+
+    return 0;
+}
+
+int Synth::op_adsr_sb(Instruction inst, Context &ctx)
+{
+    float_t gate = 0.0f;
+    if (inst.op1.type == OperandType::SHORTBUF_REG)
+        gate = ctx.get_short_buffer(inst.op1).first();
+    else if (inst.op1.type == OperandType::BUFFER_REG)
+        gate = ctx.get_buffer(inst.op1)[0];
+    else
+        gate = *ctx.get_scalar(inst.op1);
+
+    uint32_t *state_reg = ctx.get_uint32(inst.op2);
+    float_t *env_val = ctx.get_scalar(inst.op3); // 'time' register stores current amplitude
+    float_t attack = *ctx.get_scalar(inst.op4);
+    float_t decay = *ctx.get_scalar(inst.op5);
+    float_t sustain = std::clamp(*ctx.get_scalar(inst.op6), 0.0f, 1.0f);
+    float_t release = *ctx.get_scalar(inst.op7);
+    auto outbuffer = ctx.get_short_buffer(inst.op8);
+
+    ADSRState state = static_cast<ADSRState>(*state_reg);
+
+    // Gate logic
+    if (gate > 0.5f && (state == ADSRState::IDLE || state == ADSRState::RELEASE))
+    {
+        state = ADSRState::ATTACK;
+    }
+    else if (gate <= 0.5f && state != ADSRState::IDLE && state != ADSRState::RELEASE)
+    {
+        state = ADSRState::RELEASE;
+    }
+
+    float_t delta_t = dt * CHUNK_SIZE; //the delta t is the whole chunk
+
+    float_t current_val = *env_val;
+    float_t attack_rate = delta_t / (attack + 1e-5f);
+    float_t decay_rate = (1.0f - sustain) * delta_t / (decay + 1e-5f);
+    float_t release_rate = delta_t / (release + 1e-5f);
+
+    for (size_t i = 0; i < 2; i++) //perform loop only twice throughout the chunk
+    {
+        if (state == ADSRState::ATTACK)
+        {
+            current_val += attack_rate;
+            if (current_val >= 1.0f)
+            {
+                current_val = 1.0f;
+                state = ADSRState::DECAY;
+            }
+        }
+        else if (state == ADSRState::DECAY)
+        {
+            current_val -= decay_rate;
+            if (current_val <= sustain)
+            {
+                current_val = sustain;
+                state = ADSRState::SUSTAIN;
+            }
+        }
+        else if (state == ADSRState::SUSTAIN)
+        {
+            current_val = sustain;
+        }
+        else if (state == ADSRState::RELEASE)
+        {
+            current_val -= release_rate;
+            if (current_val <= 0.0f)
+            {
+                current_val = 0.0f;
+                state = ADSRState::IDLE;
+            }
+        }
+        else // IDLE
+        {
+            current_val = 0.0f;
+        }
+
+        if (i == 0)
+            outbuffer.first() = current_val; //at the first pass write to the start of the buffer
+        else
+            outbuffer.second() = current_val; //at the second pass write to the end of the buffer
     }
 
     *env_val = current_val;
