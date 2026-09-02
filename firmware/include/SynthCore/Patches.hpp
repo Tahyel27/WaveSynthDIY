@@ -176,6 +176,64 @@ namespace Synth
         return {instructions, 9};
     }
 
+    inline PatchDef acid_like_patch()
+    {
+        static Instruction instructions[] = {
+            // 1. Audio source: WTOSC using frequency from ScalarReg(0)
+            {
+                OpCode::WTOSC,
+                Operand::ScalarReg(0),      // Freq from context (set by play_note)
+                Operand::ScalarReg(10),     // Phase accumulator register
+                Operand::Immediate_f(0.0f), // Phase distortion
+                Operand::Immediate_u(1),    // Wavetable index
+                Operand::Immediate_f(0.0f), // Morph position
+                Operand::BufferReg(1)       // Audio output buffer
+            },
+            // 2. LFO: Triangle at 2 Hz
+            {
+                OpCode::ADSR,
+                Operand::ScalarReg(2),      // Gate signal (set by play_note/release_note)
+                Operand::ScalarReg(3),      // Envelope state
+                Operand::ScalarReg(4),      // Envelope value
+                Operand::Immediate_f(0.0f), // Attack time (sec)
+                Operand::Immediate_f(0.5f), // Decay time (sec)
+                Operand::Immediate_f(0.0f), // Sustain level
+                Operand::Immediate_f(100.f), // Release time (sec)
+                Operand::ShortBufReg(0)       // Envelope output buffer
+            },
+            // 3. Scale LFO depth: LFO * 900.0
+            {
+                OpCode::MUL_SB,
+                Operand::ShortBufReg(0),      // LFO in (-1.0 to 1.0)
+                Operand::Immediate_f(8000.0f), // Depth
+                Operand::ShortBufReg(1)       // Scaled LFO out
+            },
+            // 4. Offset LFO cutoff: Scaled LFO + 1100.0
+            {
+                OpCode::ADD_SB,
+                Operand::ShortBufReg(1),       // Scaled LFO
+                Operand::Immediate_f(1000.0f), // Base cutoff frequency
+                Operand::ShortBufReg(2)        // Final cutoff out
+            },
+            // 5. Filter: SVF LP with modulated cutoff
+            {
+                OpCode::SVFILTLP,
+                Operand::ScalarReg(11),     // State z1
+                Operand::ScalarReg(12),     // State z2
+                Operand::BufferReg(1),      // Input signal
+                Operand::ShortBufReg(2),    // Modulated cutoff
+                Operand::Immediate_f(0.9f), // Resonance Q
+                Operand::BufferReg(1)       // Filtered audio out
+            },
+            // 6. MASTER_OUT: Output audio to master buffer
+            {
+                OpCode::MASTER_OUT,
+                Operand::BufferReg(1)
+            }
+        };
+        return {instructions, 6};
+    }
+
     // --- Complex patches left for manual porting ---
 
     /*
