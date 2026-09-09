@@ -58,6 +58,8 @@ struct NoteTracker
                 return voice_id;
             }
         }
+
+        return -1;
     }
 private:
     std::array<NoteState, Synth::VOICE_COUNT> tracker;
