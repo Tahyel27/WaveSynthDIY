@@ -104,6 +104,11 @@ struct AudioStack : public AudioSource
             poly_manager.get_external_register()->at(setreg->register_ID).f = setreg->val;
         }
     }
+
+    void config_effects(EffectStackConfig fx_conf)
+    {
+        fx_stack.set_config(fx_conf);
+    }
 private:
     PolyphonyManager &poly_manager;
     EffectStack &fx_stack;
