@@ -68,7 +68,7 @@ int main()
     engine.startVoice(0);
     engine.setDelay(false);*/
 
-    auto analog = AnalogArray(16, 17, 18, 26);
+    //auto analog = AnalogArray(16, 17, 18, 26);
 
 
     //manager.playFrequency(100, 0, 1);
@@ -173,7 +173,7 @@ int main()
                 if (ev.is_type(EventType::BUTTON_RELEASE))
                     printf("button %d released\n", ev.get_button_release());
                 if (ev.is_type(EventType::ENCODER_TURN))
-                    printf("encoder turned: %d", ev.get_encoder_turn());
+                    printf("encoder turned: %d\n", ev.get_encoder_turn());
             }
 
             HWProfiler::putLO();

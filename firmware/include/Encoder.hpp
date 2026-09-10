@@ -90,7 +90,6 @@ public:
             return;
 
         new_value = encoder_get_count(m_pio, sm);
-        printf("%d\n", new_value);
 
         auto delta = new_value - old_value;
 
