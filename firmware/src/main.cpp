@@ -11,6 +11,7 @@
 #include "ADSR.hpp"
 #include "HWProfiler.hpp"
 #include "Events.hpp"
+#include "Encoder.hpp"
 #include "StaticQueue.hpp"
 #include "AudioStack.hpp"
 
@@ -19,6 +20,12 @@ int main()
     stdio_init_all();
 
     HWProfiler::init();
+
+    //encoders need to be the first pio acquired
+    //pins 16 and 17
+    auto encoder_opt = Encoder::acquire_first(pio0, 16);
+    if (!encoder_opt.has_value()) return -1;
+    auto encoder = std::move(encoder_opt.value());
 
     auto buffers = AudioDeviceBuffers();
 
@@ -156,6 +163,7 @@ int main()
             }*/
 
             btnarr.poll(queue);
+            encoder.poll(queue);
             while (!queue.empty())
             {
                 auto ev = queue.pop();
@@ -164,7 +172,8 @@ int main()
                     printf("button %d pressed\n", ev.get_button_press());
                 if (ev.is_type(EventType::BUTTON_RELEASE))
                     printf("button %d released\n", ev.get_button_release());
-                
+                if (ev.is_type(EventType::ENCODER_TURN))
+                    printf("encoder turned: %d", ev.get_encoder_turn());
             }
 
             HWProfiler::putLO();

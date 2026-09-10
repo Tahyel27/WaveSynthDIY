@@ -11,6 +11,7 @@ add_library(WavetableSynth WavetableSynth.cpp wavetable_data.cpp)
 
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/audio_device.pio)
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/button_array.pio)
+pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/../asm/encoder.pio)
 
 pico_set_program_name(${NAME} "firmware")
 pico_set_program_version(${NAME} "0.1")
