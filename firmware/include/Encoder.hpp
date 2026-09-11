@@ -14,6 +14,7 @@
 
 class Encoder
 {
+    int id = -1;
     //encoder states
     int new_value, old_value = 0;
     int last_delta = -1;
@@ -37,8 +38,10 @@ class Encoder
 public:
     Encoder(Encoder &&other) noexcept : 
         new_value(other.new_value), old_value(other.old_value), last_delta(other.last_delta),
+        id(other.id),
         sm(other.sm), m_pio(other.m_pio)
     {
+        other.id = -1;
         other.m_pio = nullptr;
     }
 
@@ -47,7 +50,7 @@ public:
 
     //acquire the first possible encoder for a given PIO
     //this will have the sm = 0
-    static std::optional<Encoder> acquire_first(PIO pio, uint pin_ab) 
+    static std::optional<Encoder> acquire_first(PIO pio, uint pin_ab, int id) 
     {
         Encoder encoder;
         
@@ -58,13 +61,14 @@ public:
         encoder.m_pio = pio;
         encoder.sm = 0;
         encoder.pin_ab = pin_ab;
+        encoder.id = id;
 
         encoder_program_init(encoder.m_pio, encoder.sm, encoder.pin_ab, 0);
 
         return encoder;
     }
 
-    static std::optional<Encoder> acquire_other(const Encoder &first, uint pin_ab, uint sm)
+    static std::optional<Encoder> acquire_other(const Encoder &first, uint pin_ab, uint sm, int id)
     {
         Encoder encoder;
         
@@ -73,10 +77,14 @@ public:
 
         if (first.m_pio == nullptr)
             return std::nullopt;
+
+        if (first.id == id)
+            return std::nullopt;
         
         encoder.m_pio = first.m_pio;
         encoder.sm = sm;
         encoder.pin_ab = pin_ab;
+        encoder.id = id;
 
         encoder_program_init(encoder.m_pio, encoder.sm, encoder.pin_ab, 0);
 
@@ -96,7 +104,7 @@ public:
         if (new_value != old_value || delta != last_delta)
         {
             last_delta = delta;
-            event_queue.push(Event::encoder_turn(delta));
+            event_queue.push(Event::encoder_turn(id, delta));
         }
 
         old_value = new_value;

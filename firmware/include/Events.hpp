@@ -10,10 +10,17 @@ enum class EventType
     DIAL_CHANGE
 };
 
+struct EncoderTurn
+{
+    int encoder_id;
+    int change;
+};
+
 union EventValue
 {
     float f;
     int i;
+    EncoderTurn encoder;
 };
 
 struct Event
@@ -34,11 +41,11 @@ struct Event
         return ev;
     }
 
-    static Event encoder_turn(int i)
+    static Event encoder_turn(int id, int change)
     {
         auto ev = Event{};
         ev.m_type = EventType::ENCODER_TURN;
-        ev.m_value.i = i;
+        ev.m_value.encoder = EncoderTurn{.encoder_id = id, .change = change};
         return ev;
     }
 
@@ -65,9 +72,9 @@ struct Event
         return m_value.i;
     }
 
-    int get_encoder_turn()
+    EncoderTurn get_encoder_turn()
     {
-        return m_value.i;
+        return m_value.encoder;
     }
 
     float get_dial_change()
