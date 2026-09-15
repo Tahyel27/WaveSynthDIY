@@ -14,12 +14,15 @@
 #include "Encoder.hpp"
 #include "StaticQueue.hpp"
 #include "AudioStack.hpp"
+#include "MIDIUart.hpp"
 
 int main()
 {
     stdio_init_all();
 
     HWProfiler::init();
+
+    sleep_ms(2000);
 
     //encoders need to be the first pio acquired
     //pins 16 and 17
@@ -65,6 +68,8 @@ int main()
     }
 
     auto btnarr = std::move(btnarr_opt.value());
+
+    auto midi_receiver = MidiReceiver::acquire_uart1(5);
     
 
     /*auto [data, ord] = engine.getDataForVoiceRef(0);
@@ -103,10 +108,10 @@ int main()
 
     auto queue = staticQueue<Event, 20>();
 
-    auto encoderArr_opt = EncoderArray::claim(5, 4, 3);
+    /*auto encoderArr_opt = EncoderArray::claim(5, 4, 3);
     if(!encoderArr_opt.has_value()) return -1;
 
-    auto encoderArr = std::move(encoderArr_opt.value());
+    auto encoderArr = std::move(encoderArr_opt.value());*/
 
     int noteA = 0;
     int noteB = 0;
@@ -169,6 +174,7 @@ int main()
             btnarr.poll(queue);
             encoder.poll(queue);
             encoder2.poll(queue);
+            midi_receiver.poll(queue);
             while (!queue.empty())
             {
                 auto ev = queue.pop();
@@ -179,6 +185,11 @@ int main()
                     printf("button %d released\n", ev.get_button_release());
                 if (ev.is_type(EventType::ENCODER_TURN))
                     printf("encoder %d turned: %d\n", ev.get_encoder_turn().encoder_id, ev.get_encoder_turn().change);
+                if (ev.is_type(EventType::MIDI_MESSAGE))
+                {
+                    auto msg = ev.get_midi_message();
+                    printf("Midi message received: %x %x %x\n",msg.status, msg.data_1, msg.data_2);
+                }
             }
 
             HWProfiler::putLO();

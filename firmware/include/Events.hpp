@@ -7,7 +7,8 @@ enum class EventType
     BUTTON_PRESS,
     BUTTON_RELEASE,
     ENCODER_TURN,
-    DIAL_CHANGE
+    DIAL_CHANGE,
+    MIDI_MESSAGE
 };
 
 struct EncoderTurn
@@ -16,11 +17,19 @@ struct EncoderTurn
     int change;
 };
 
+struct MidiMessage
+{
+    char status;
+    char data_1;
+    char data_2;
+};
+
 union EventValue
 {
     float f;
     int i;
     EncoderTurn encoder;
+    MidiMessage midi;
 };
 
 struct Event
@@ -57,6 +66,14 @@ struct Event
         return ev;
     }
 
+    static Event midi_message(MidiMessage message)
+    {
+        auto ev = Event{};
+        ev.m_type = EventType::MIDI_MESSAGE;
+        ev.m_value.midi = message;
+        return ev;
+    }
+
     bool is_type(EventType type)
     {
         return type == m_type;
@@ -82,6 +99,11 @@ struct Event
         return m_value.f;
     }
     
+    MidiMessage get_midi_message()
+    {
+        return m_value.midi;
+    }
+
     EventType m_type;
     EventValue m_value;
 };
