@@ -18,6 +18,8 @@ struct SetExtRegister
 {
     int register_ID;
     float val;
+
+    SetExtRegister(int reg_id, float value) : register_ID(reg_id), val(value) {};
 };
 
 // Starts playing frequency Hz through a free voice of the PolyphonyManager.
@@ -28,6 +30,9 @@ struct PressNote
     int play_ID;
     float frequency;
     float velocity = 1.0;
+
+    PressNote(int play_id, float freq, float vel = 1.0f) 
+        : play_ID(play_id), frequency(freq), velocity(vel) {}; 
 };
 
 // Releases the voice previously pressed with PressNote. note_ID refers to
@@ -35,6 +40,8 @@ struct PressNote
 struct ReleaseNote
 {
     int play_ID;
+    
+    ReleaseNote(int play_id) : play_ID(play_id) {};
 };
 
 // A single queued action; one of the command types above.
