@@ -16,6 +16,7 @@
 #include "AudioStack.hpp"
 #include "MIDIUart.hpp"
 #include "SPIHandler.hpp"
+#include "ButtonMatrix.hpp"
 
 int main()
 {
@@ -62,13 +63,20 @@ int main()
     //data 19, clk 20, latch 21
     //auto btnarr = ButtonArray(19, 20, 21);
 
-    auto btnarr_opt = ButtonArray::claim(19,20,21);
+    /*auto btnarr_opt = ButtonArray::claim(19,20,21);
     if (!btnarr_opt.has_value())
     {
         return -1;
     }
-
     auto btnarr = std::move(btnarr_opt.value());
+    */
+    auto spi = SPIHandler(spi0, 0, 3, 2, 4 * 1000 * 1000);
+    auto matrix_opt = ButtonMatrix::claim(&spi, 19, 20, 21, 4, 8);
+    if (!matrix_opt.has_value())
+    {
+        return -1;
+    }
+    auto matrix = std::move(matrix_opt.value());
 
     auto midi_receiver = MidiReceiver::acquire_uart1(5);
     
@@ -172,7 +180,8 @@ int main()
                 }
             }*/
 
-            btnarr.poll(queue);
+            //btnarr.poll(queue);
+            matrix.poll(queue);
             encoder.poll(queue);
             encoder2.poll(queue);
             midi_receiver.poll(queue);
