@@ -105,7 +105,7 @@ static inline void encoder_program_init(PIO pio, uint sm, uint pin, int max_step
     gpio_pull_up(pin);
     gpio_pull_up(pin + 1);
 
-    pio_sm_config c = quadrature_encoder_program_get_default_config(0);
+    pio_sm_config c = encoder_program_get_default_config(0);
 
     sm_config_set_in_pins(&c, pin); // for WAIT, IN
     sm_config_set_jmp_pin(&c, pin); // for JMP
