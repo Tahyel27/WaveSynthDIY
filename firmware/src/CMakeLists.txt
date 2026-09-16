@@ -26,6 +26,7 @@ target_link_libraries(${NAME}
         hardware_pio
         hardware_dma
         hardware_adc
+        hardware_spi
         WavetableSynth
         Engine
 )

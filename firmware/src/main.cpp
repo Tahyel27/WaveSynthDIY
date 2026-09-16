@@ -15,6 +15,7 @@
 #include "StaticQueue.hpp"
 #include "AudioStack.hpp"
 #include "MIDIUart.hpp"
+#include "SPIHandler.hpp"
 
 int main()
 {
