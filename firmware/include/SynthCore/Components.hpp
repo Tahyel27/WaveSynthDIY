@@ -23,6 +23,7 @@ namespace Synth
         MUL,
         MUL_SB,
         ADD_SB,
+        SOFTCLIP,
         MASTER_OUT
     };
 
@@ -88,4 +89,5 @@ namespace Synth
     int op_mul_sb(Instruction inst, Context &ctx);
     int op_add_sb(Instruction inst, Context &ctx);
     int op_master_out(Instruction inst, Context &ctx);
+    int op_softclip(Instruction inst, Context &ctx);
 }

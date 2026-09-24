@@ -100,6 +100,9 @@ int Synth::SynthEngine::process_instruction(Instruction instruction)
     case OpCode::MASTER_OUT:
         op_master_out(instruction, ctx);
         break;
+    case OpCode::SOFTCLIP:
+        op_softclip(instruction, ctx);
+        break;
     default:
         break;
     }

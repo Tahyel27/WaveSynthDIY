@@ -642,3 +642,34 @@ int Synth::op_master_out(Instruction inst, Context &ctx)
 
     return 0;
 }
+
+int Synth::op_softclip(Instruction inst, Context &ctx)
+{
+    //SOFTCLIP, reg1: input, reg2: gain, reg3: output
+
+    auto softclip = [](float v){ 
+        return std::clamp((v - v*v*v/3.f)*(3.f/2.f), -1.0f, 1.0f); 
+    };
+
+    if (inst.op1.type == OperandType::SHORTBUF_REG)
+    {
+        auto input = ctx.get_short_buffer(inst.op1);
+        auto output = ctx.get_short_buffer(inst.op3);
+        auto gain = ctx.get_short_buffer(inst.op2);
+
+        output.first() = softclip(gain.first() * input.first());
+        output.second() = softclip(gain.second() * input.second());
+    }
+
+    //normal buffer
+    float_t * input = ctx.get_buffer(inst.op1);
+    float_t * output = ctx.get_buffer(inst.op3);
+    auto gain = ctx.get_short_buffer(inst.op2);
+
+    for (int i = 0; i < CHUNK_SIZE; i++)
+    {
+        output[i] = softclip(gain.next() * input[i]);
+    }
+
+    return 0;
+}
