@@ -277,7 +277,7 @@ namespace Synth
                 Operand::ScalarReg(6),      // Envelope value
                 Operand::Immediate_f(0.0f), // Attack time (sec)
                 Operand::Immediate_f(0.5f), // Decay time (sec)
-                Operand::Immediate_f(0.1f), // Sustain level
+                Operand::Immediate_f(0.0f), // Sustain level
                 Operand::Immediate_f(0.5f), // Release time (sec)
                 Operand::ShortBufReg(2)       // Envelope output buffer
             },
@@ -307,12 +307,18 @@ namespace Synth
                 Operand::Immediate_f(0.8f), // Resonance Q
                 Operand::BufferReg(0)       // Filtered audio out
             },
-            // 8. MASTER_OUT: Output audio to master buffer
+            { // 8. soft clip distortion
+                OpCode::SOFTCLIP,
+                Operand::BufferReg(0),
+                Operand::Immediate_f(1.0f),
+                Operand::BufferReg(0)
+            },
+            // 9. MASTER_OUT: Output audio to master buffer
             {
                 OpCode::MASTER_OUT,
                 Operand::BufferReg(0)
             }};
-        return {instructions, 8};
+        return {instructions, 9};
     }
 
     // --- Complex patches left for manual porting ---
