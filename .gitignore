@@ -3,6 +3,7 @@
 **/.vscode
 **/*.lck
 **/button_registers-backups
+**/pico_synth-backups
 playground/button_registers/_autosave-button_registers.kicad_sch
 playground/button_registers/#auto_saved_files#
 playground/analog_mux/analog_mux-backups/analog_mux-2025-11-22_103202.zip
