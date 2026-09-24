@@ -30,16 +30,18 @@ static inline Synth::float_t sampleTableLinearFixed(const int16_t *t, uint32_t t
     const int16_t A = t[t10Q22 >> 22];
     const int16_t B = t[(t10Q22 >> 22) + 1];
     const uint32_t max32bit = ((uint32_t)0 - 1);
-    const uint32_t max16bit = max32bit >> 16;
-    const float bit16tofl = 1. / static_cast<float>(max16bit);
-    const float tableTo0float1 = bit16tofl * bit16tofl;
+    const uint32_t max15bit = max32bit >> 17;
+    const float int16tofl = 1. / static_cast<float>(max15bit);
 
     const uint32_t angle = (max32bit >> 10) & t10Q22;
 
-    const uint32_t inter = angle >> 6;
+    const uint32_t inter = angle >> 7; // 15 bit interpolator
 
-    const int32_t value = (uint32_t)A * (max16bit - inter) + (uint32_t)B * (inter);
-    return static_cast<Synth::float_t>(value) * tableTo0float1;
+    const int32_t difference = B - A;
+    const int32_t multiplied = (difference * inter) >> 15; //renormalized
+    const int16_t value = multiplied + A;
+
+    return static_cast<Synth::float_t>(value) * int16tofl;
 }
 
 int Synth::op_add(Instruction inst, Context &ctx)
