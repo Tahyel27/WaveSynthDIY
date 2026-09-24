@@ -192,13 +192,13 @@ int main() {
 
     // Test 3: Two notes being played through the stack
     std::cout << "testing two note through stack\n";
-    audio_stack.send_command(PressNote{.play_ID = 0, .frequency = 440.f, .velocity = 1.0});
+    audio_stack.send_command(PressNote(0, 440.f,1.0));
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
-    audio_stack.send_command(PressNote{.play_ID = 1, .frequency = 329.63f, .velocity = 1.0});
+    audio_stack.send_command(PressNote(1, 329.63f, 1.0));
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
-    audio_stack.send_command(ReleaseNote{.play_ID = 1});
+    audio_stack.send_command(ReleaseNote(1));
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
-    audio_stack.send_command(ReleaseNote{.play_ID = 0});
+    audio_stack.send_command(ReleaseNote(0));
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
     // Test 4: Playing a 6-voice full chord (utilizing maximum polyphony VOICE_COUNT = 6)
