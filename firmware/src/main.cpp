@@ -36,6 +36,26 @@ static const float MIDI_NOTES[128] = {
     5274.0410f, 5587.6517f, 5919.9108f, 6271.9270f, 6644.8752f, 7040.0000f, 7458.6202f, 7902.1328f,
     8372.0181f, 8869.8442f, 9397.2726f, 9956.0635f, 10548.082f, 11175.303f, 11839.822f, 12543.854f};
 
+
+const auto ENCODER_PRIMARY_PIO = pio0;
+
+const uint ENCODER_1_AB = 16;
+const uint ENCODER_2_AB = 26; 
+
+const uint PCM5102A_DATA = 12;
+const uint PCM5102A_LCK = 13;
+
+const auto BUTTON_SPI = spi0;
+const uint BUTTON_IN_SPI_MISO = 0;
+const uint BUTTON_IN_SPI_MOSI = 3;
+const uint BUTTON_IN_SPI_SCK = 2;
+
+const uint BUTTON_OUT_DATA = 19;
+const uint BUTTON_OUT_CLOCK = 20;
+const uint BUTTON_OUT_LATCH = 21;
+
+const uint MIDI_RX = 5;
+
 int main()
 {
     stdio_init_all();
@@ -46,11 +66,11 @@ int main()
 
     //encoders need to be the first pio acquired
     //pins 16 and 17
-    auto encoder_opt = Encoder::acquire_first(pio0, 16, 0);
+    auto encoder_opt = Encoder::acquire_first(ENCODER_PRIMARY_PIO, ENCODER_1_AB, 0);
     if (!encoder_opt.has_value()) return -1;
     auto encoder = std::move(encoder_opt.value());
 
-    auto encoder2_opt = Encoder::acquire_other(encoder, 26, 1, 1);
+    auto encoder2_opt = Encoder::acquire_other(encoder, ENCODER_2_AB, 1, 1);
     if (!encoder2_opt.has_value()) return -1;
     auto encoder2 = std::move(encoder2_opt.value());
 
@@ -59,7 +79,7 @@ int main()
     auto irqHandler = IRQHandler::getIRQHandler();
 
     //pin H has the lowest number button
-    auto device_opt = AudioDevice::claim(12, 13, &buffers, irqHandler);
+    auto device_opt = AudioDevice::claim(PCM5102A_DATA, PCM5102A_LCK, &buffers, irqHandler);
     if (!device_opt.has_value()) return -1;
 
     auto device = std::move(device_opt.value());
@@ -88,15 +108,28 @@ int main()
     }
     auto btnarr = std::move(btnarr_opt.value());
     */
-    auto spi = SPIHandler(spi0, 0, 3, 2, 4 * 1000 * 1000);
-    auto matrix_opt = ButtonMatrix::claim(&spi, 19, 20, 21, 4, 8);
+    auto spi = SPIHandler(
+        BUTTON_SPI, 
+        BUTTON_IN_SPI_MISO,
+        BUTTON_IN_SPI_MOSI,
+        BUTTON_IN_SPI_SCK,
+        4 * 1000 * 1000
+    );
+    auto matrix_opt = ButtonMatrix::claim(
+        &spi, 
+        BUTTON_OUT_DATA, 
+        BUTTON_OUT_CLOCK, 
+        BUTTON_OUT_LATCH, 
+        4, 
+        8
+    );
     if (!matrix_opt.has_value())
     {
         return -1;
     }
     auto matrix = std::move(matrix_opt.value());
 
-    auto midi_receiver = MidiReceiver::acquire_uart1(5);
+    auto midi_receiver = MidiReceiver::acquire_uart1(MIDI_RX);
     
 
     /*auto [data, ord] = engine.getDataForVoiceRef(0);
