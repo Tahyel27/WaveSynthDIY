@@ -26,6 +26,9 @@ class PolyphonyManager
 
     alignas(32) std::array<float_t, BUFFER_SIZE> master_buffer;
 
+    const float output_gain = 0.7f;
+    float gain = 0.7f;
+
     ScalarRegister * ext_register;
 
     std::array<Instruction, MAX_INSTRUCTION_COUNT> instructions;
@@ -96,7 +99,13 @@ void PolyphonyManager::deactivate_voice(int ID)
 void PolyphonyManager::render_audio(float_t * out_buffer)
 {
     std::fill_n(out_buffer, BUFFER_SIZE, 0.0);
-    
+
+
+    float gain_target = output_gain;
+    if (active_voices > 0) gain_target = output_gain / sqrtf(active_voices);
+
+    gain = gain + (gain_target - gain) * 0.3f;
+
     for (auto& voice : voices)
     {
         if (voice.state != VoiceState::INACTIVE)
@@ -104,7 +113,7 @@ void PolyphonyManager::render_audio(float_t * out_buffer)
             voice.engine.write_buffer(master_buffer.data());
             for (int i = 0; i < BUFFER_SIZE; i++)
             {
-                out_buffer[i] += master_buffer[i];
+                out_buffer[i] += master_buffer[i] * gain;
             }
 
             if (voice.state == VoiceState::RELEASING)
