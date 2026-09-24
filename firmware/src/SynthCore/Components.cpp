@@ -92,12 +92,14 @@ int Synth::op_mix(Instruction inst, Context &ctx)
     float_t * in_2 = ctx.get_buffer(inst.op2);
     float_t * out = ctx.get_buffer(inst.op5);
 
-    float_t a1 = *ctx.get_scalar(inst.op3);
-    float_t a2 = *ctx.get_scalar(inst.op4);
+    /*float_t a1 = *ctx.get_scalar(inst.op3);
+    float_t a2 = *ctx.get_scalar(inst.op4);*/
+    auto a1 = ctx.get_short_buffer(inst.op3);
+    auto a2 = ctx.get_short_buffer(inst.op4);
 
     for (int i = 0; i < CHUNK_SIZE; i++)
     {
-        out[i] = in_1[i] * a1 + in_2[i] * a2;
+        out[i] = in_1[i] * a1.next() + in_2[i] * a2.next();
     }
 
     return 0;

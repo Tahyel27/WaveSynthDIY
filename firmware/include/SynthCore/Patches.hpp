@@ -234,6 +234,87 @@ namespace Synth
         return {instructions, 6};
     }
 
+    inline PatchDef two_table_patch()
+    {
+        static Instruction instructions[] = {
+            // 1. Audio source: WTOSC using frequency from ScalarReg(0)
+            {
+                OpCode::WTOSC,
+                Operand::ScalarReg(0),      // Freq from context (set by play_note)
+                Operand::ScalarReg(10),     // Phase accumulator register
+                Operand::Immediate_f(0.0f), // Phase distortion
+                Operand::Immediate_u(4),    // Wavetable index
+                Operand::Immediate_f(0.0f), // Morph position
+                Operand::BufferReg(1)       // Audio output buffer
+            },
+            // 2. Second wavetable
+            {
+                OpCode::WTOSC,
+                Operand::ScalarReg(0),      // Freq from context (set by play_note)
+                Operand::ScalarReg(11),     // Phase accumulator register
+                Operand::Immediate_f(0.0f), // Phase distortion
+                Operand::Immediate_u(5),    // Wavetable index
+                Operand::Immediate_f(0.0f), // Morph position
+                Operand::BufferReg(2)       // Audio output buffer
+            },
+            // 3. adsr 1
+            {
+                OpCode::ADSR,
+                Operand::ScalarReg(2),      // Gate signal (set by play_note/release_note)
+                Operand::ScalarReg(3),      // Envelope state
+                Operand::ScalarReg(4),      // Envelope value
+                Operand::Immediate_f(0.0f), // Attack time (sec)
+                Operand::Immediate_f(1.0f), // Decay time (sec)
+                Operand::Immediate_f(0.6f), // Sustain level
+                Operand::Immediate_f(0.5f), // Release time (sec)
+                Operand::ShortBufReg(1)       // Envelope output buffer
+            },
+            // 4. adsr 2
+            {
+                OpCode::ADSR,
+                Operand::ScalarReg(2),      // Gate signal (set by play_note/release_note)
+                Operand::ScalarReg(5),      // Envelope state
+                Operand::ScalarReg(6),      // Envelope value
+                Operand::Immediate_f(0.0f), // Attack time (sec)
+                Operand::Immediate_f(0.5f), // Decay time (sec)
+                Operand::Immediate_f(0.1f), // Sustain level
+                Operand::Immediate_f(0.5f), // Release time (sec)
+                Operand::ShortBufReg(2)       // Envelope output buffer
+            },
+            // 5. Mix 1 and 2
+            {
+                OpCode::MIX,
+                Operand::BufferReg(1),      // Input buffer 1
+                Operand::BufferReg(2),      // Input buffer 2
+                Operand::ShortBufReg(1),    // Amount from 1
+                Operand::ShortBufReg(2),    // Amount from 2
+                Operand::BufferReg(3)       // Output buffer
+            },
+            // 6. double the note frequency and store it in register 15
+            {
+                OpCode::MUL,
+                Operand::ScalarReg(0),
+                Operand::Immediate_f(2.0),
+                Operand::ScalarReg(15)
+            },
+            // 7. filter that uses the doubled frequency for cutoff
+            {
+                OpCode::SVFILTLP,
+                Operand::ScalarReg(13),     // State z1
+                Operand::ScalarReg(14),     // State z2
+                Operand::BufferReg(3),      // Input signal
+                Operand::ScalarReg(15),    // Modulated cutoff
+                Operand::Immediate_f(0.8f), // Resonance Q
+                Operand::BufferReg(0)       // Filtered audio out
+            },
+            // 8. MASTER_OUT: Output audio to master buffer
+            {
+                OpCode::MASTER_OUT,
+                Operand::BufferReg(0)
+            }};
+        return {instructions, 8};
+    }
+
     // --- Complex patches left for manual porting ---
 
     /*

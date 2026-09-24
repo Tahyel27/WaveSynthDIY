@@ -117,7 +117,7 @@ namespace Synth
             return *m_second;
         }
 
-        float_t next() 
+        inline float_t next() 
         {
             auto tmp = m_current;
             m_current += m_increment;
