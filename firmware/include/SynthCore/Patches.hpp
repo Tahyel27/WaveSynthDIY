@@ -240,27 +240,27 @@ namespace Synth
             // 1. Audio source: WTOSC using frequency from ScalarReg(0)
             {
                 OpCode::WTOSC,
-                Operand::ScalarReg(0),      // Freq from context (set by play_note)
+                Operand::ScalarReg(SCALAR_REG_FREQUENCY),      // Freq from context (set by play_note)
                 Operand::ScalarReg(10),     // Phase accumulator register
                 Operand::Immediate_f(0.0f), // Phase distortion
-                Operand::Immediate_u(4),    // Wavetable index
+                Operand::ExternalReg(EXT_WAVETABLE1_INDEX),    // Wavetable index
                 Operand::Immediate_f(0.0f), // Morph position
                 Operand::BufferReg(1)       // Audio output buffer
             },
             // 2. Second wavetable
             {
                 OpCode::WTOSC,
-                Operand::ScalarReg(0),      // Freq from context (set by play_note)
+                Operand::ScalarReg(SCALAR_REG_FREQUENCY),      // Freq from context (set by play_note)
                 Operand::ScalarReg(11),     // Phase accumulator register
                 Operand::Immediate_f(0.0f), // Phase distortion
-                Operand::Immediate_u(5),    // Wavetable index
+                Operand::ExternalReg(EXT_WAVETABLE2_INDEX),    // Wavetable index
                 Operand::Immediate_f(0.0f), // Morph position
                 Operand::BufferReg(2)       // Audio output buffer
             },
             // 3. adsr 1
             {
                 OpCode::ADSR,
-                Operand::ScalarReg(2),      // Gate signal (set by play_note/release_note)
+                Operand::ScalarReg(SCALAR_REG_GATE),      // Gate signal (set by play_note/release_note)
                 Operand::ScalarReg(3),      // Envelope state
                 Operand::ScalarReg(4),      // Envelope value
                 Operand::Immediate_f(0.0f), // Attack time (sec)
@@ -272,7 +272,7 @@ namespace Synth
             // 4. adsr 2
             {
                 OpCode::ADSR,
-                Operand::ScalarReg(2),      // Gate signal (set by play_note/release_note)
+                Operand::ScalarReg(SCALAR_REG_GATE),      // Gate signal (set by play_note/release_note)
                 Operand::ScalarReg(5),      // Envelope state
                 Operand::ScalarReg(6),      // Envelope value
                 Operand::Immediate_f(0.0f), // Attack time (sec)
