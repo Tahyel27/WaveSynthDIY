@@ -19,6 +19,8 @@ struct SetExtRegister
     int register_ID;
     RegisterData val;
 
+    SetExtRegister() = default;
+
     SetExtRegister(int reg_id, float value) : register_ID(reg_id) {
         val.f = value;
     };
