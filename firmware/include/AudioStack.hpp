@@ -103,7 +103,7 @@ struct AudioStack : public AudioSource
         }
         else if (auto * setreg = std::get_if<SetExtRegister>(&cmd))
         {
-            poly_manager.get_external_register()->at(setreg->register_ID).f = setreg->val;
+            poly_manager.get_external_register()->at(setreg->register_ID) = setreg->val;
         }
     }
 

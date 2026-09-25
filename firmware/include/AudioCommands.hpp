@@ -17,9 +17,15 @@
 struct SetExtRegister
 {
     int register_ID;
-    float val;
+    RegisterData val;
 
-    SetExtRegister(int reg_id, float value) : register_ID(reg_id), val(value) {};
+    SetExtRegister(int reg_id, float value) : register_ID(reg_id) {
+        val.f = value;
+    };
+
+    SetExtRegister(int reg_id, int value) : register_ID(reg_id) {
+        val.u = value;
+    };
 };
 
 // Starts playing frequency Hz through a free voice of the PolyphonyManager.
