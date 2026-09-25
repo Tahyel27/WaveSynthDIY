@@ -5,6 +5,8 @@
 #include <bitset>
 #include <algorithm>
 
+#include "Conventions.hpp"
+
 namespace Synth
 {
     using float_t = float;
@@ -15,7 +17,7 @@ namespace Synth
     constexpr int VOICE_COUNT = 6;
     constexpr int MAX_GRAPH_NODES = 20;
     constexpr int maxamp = 32767;
-    constexpr size_t REGISTER_SIZE = 25;
+    constexpr size_t REGISTER_SIZE = 30;
     constexpr size_t MAX_INSTRUCTION_COUNT = 20;
 
     constexpr int SPS = 45045;
@@ -293,20 +295,20 @@ namespace Synth
         void set_frequency(float_t freq)
         {
             //Sets the frequency of the sound, frequency is stored in scalar register 0
-            scalar_reg[0].f = freq;
+            scalar_reg[SCALAR_REG_FREQUENCY].f = freq;
         }
 
         void set_velocity(float_t vel)
         {
             //sets the velocity of the sound, by convention it is scalar register 1
-            scalar_reg[1].f = vel;
+            scalar_reg[SCALAR_REG_VELOCITY].f = vel;
         }
 
         void set_gate(bool gate)
         {
             //sets the gate, by convention it is scalar register 2
-            if(gate) scalar_reg[2].f = 1.f; 
-            else scalar_reg[2].f = 0.f;
+            if(gate) scalar_reg[SCALAR_REG_GATE].f = 1.f; 
+            else scalar_reg[SCALAR_REG_GATE].f = 0.f;
         }
     };
 
