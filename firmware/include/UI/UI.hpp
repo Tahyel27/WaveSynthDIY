@@ -6,6 +6,7 @@
 #include "Events.hpp"
 #include "AudioStack.hpp"
 #include "EncdoderMap.hpp"
+#include "MidiParser.hpp"
 
 class UI
 {
@@ -28,6 +29,8 @@ public:
     UI();
 
     void process_event(Event &event, AudioStack &audio_stack);
+
+    void process_button_press(Event event);
 };
 
 UI::UI()
@@ -97,5 +100,46 @@ void UI::process_event(Event &event, AudioStack &audio_stack)
 
             audio_stack.send_command(command);
         }
+    }
+    if (event.m_type == EventType::MIDI_MESSAGE)
+    {
+        auto opt = parse_midi_message(event.get_midi_message());
+        if (opt.has_value())
+        {
+            audio_stack.send_command(opt.value());
+        }
+    }
+    if (event.m_type == EventType::BUTTON_PRESS)
+    {
+        process_button_press(event);
+    }
+}
+
+void UI::process_button_press(Event event)
+{
+    auto button_id = event.get_button_press();
+
+    switch (button_id)
+    {
+    case 0:  //setting wavetable index
+        active_encoder_bank = &wtind_bank[0];
+        break;
+    case 1: //setting adsr 1
+        active_encoder_bank = &adsr1_bank[0];
+        break;
+    case 2: //setting adsr 2
+        active_encoder_bank = &adsr2_bank[0];
+        break;
+    case 3: //setting filter
+        active_encoder_bank = &filt_bank[0];
+        break;
+    case 4: //setting phase modulation
+        active_encoder_bank = &phmod_bank[0];
+        break;
+    case 5: //setting lfos
+        active_encoder_bank = &lfofr_bank[0];
+        break;
+    default:
+        break;
     }
 }
