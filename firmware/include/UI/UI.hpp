@@ -40,7 +40,7 @@ UI::UI()
     //ADSR
     const auto attack_encoder = EncoderMapLinear(0.0f, 1.0f, 0.005f);
     const auto decay_encoder = EncoderMapLinear(0.0f, 5.0f, 0.005f, 1.0f);
-    const auto sustain_encoder = EncoderMapLinear(0.0f, 1.0f, 0.01f, 0.9f);
+    const auto sustain_encoder = EncoderMapLinear(0.0f, 1.0f, 0.01f, 0.1f);
     const auto release_encoder = EncoderMapLinear(0.0f, 5.0f, 0.005f, 0.1f);
 
     adsr1_bank[0] = EncoderBankEntry(attack_encoder, EXT_ADSR1_ATTACK);
@@ -60,7 +60,7 @@ UI::UI()
     wtind_bank[2] = EncoderBankEntry(wtindex_encoder, EXT_WAVETABLE3_INDEX);
 
     //filter
-    const auto filter_f_encoder = EncoderMapLog(50.f, 15000.f, 1000, 50.f);
+    const auto filter_f_encoder = EncoderMapLog(50.f, 15000.f, 1000, 2000.f);
     const auto filter_r_encoder = EncoderMapLinear(0.0f, 1.0f, 0.01f, 0.9f);
     filt_bank[0] = EncoderBankEntry(filter_f_encoder, EXT_FILT1_CUTOFF);
     filt_bank[1] = EncoderBankEntry(filter_r_encoder, EXT_FILT1_RESONANCE);
