@@ -263,10 +263,10 @@ namespace Synth
                 Operand::ScalarReg(SCALAR_REG_GATE),      // Gate signal (set by play_note/release_note)
                 Operand::ScalarReg(3),      // Envelope state
                 Operand::ScalarReg(4),      // Envelope value
-                Operand::Immediate_f(0.0f), // Attack time (sec)
-                Operand::Immediate_f(1.0f), // Decay time (sec)
-                Operand::Immediate_f(0.6f), // Sustain level
-                Operand::Immediate_f(0.5f), // Release time (sec)
+                Operand::ExternalReg(EXT_ADSR1_ATTACK), // Attack time (sec)
+                Operand::ExternalReg(EXT_ADSR1_DECAY), // Decay time (sec)
+                Operand::ExternalReg(EXT_ADSR1_SUSTAIN), // Sustain level
+                Operand::ExternalReg(EXT_ADSR1_RELEASE), // Release time (sec)
                 Operand::ShortBufReg(1)       // Envelope output buffer
             },
             // 4. adsr 2
@@ -275,10 +275,10 @@ namespace Synth
                 Operand::ScalarReg(SCALAR_REG_GATE),      // Gate signal (set by play_note/release_note)
                 Operand::ScalarReg(5),      // Envelope state
                 Operand::ScalarReg(6),      // Envelope value
-                Operand::Immediate_f(0.0f), // Attack time (sec)
-                Operand::Immediate_f(0.5f), // Decay time (sec)
-                Operand::Immediate_f(0.0f), // Sustain level
-                Operand::Immediate_f(0.5f), // Release time (sec)
+                Operand::ExternalReg(EXT_ADSR2_ATTACK), // Attack time (sec)
+                Operand::ExternalReg(EXT_ADSR2_DECAY), // Decay time (sec)
+                Operand::ExternalReg(EXT_ADSR2_SUSTAIN), // Sustain level
+                Operand::ExternalReg(EXT_ADSR2_RELEASE), // Release time (sec)
                 Operand::ShortBufReg(2)       // Envelope output buffer
             },
             // 5. Mix 1 and 2
