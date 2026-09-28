@@ -41,6 +41,8 @@ const auto ENCODER_PRIMARY_PIO = pio0;
 
 const uint ENCODER_1_AB = 16;
 const uint ENCODER_2_AB = 26; 
+const uint ENCODER_3_AB = 6;
+const uint ENCODER_4_AB = 9;
 
 const uint PCM5102A_DATA = 12;
 const uint PCM5102A_LCK = 13;
@@ -73,6 +75,14 @@ int main()
     auto encoder2_opt = Encoder::acquire_other(encoder, ENCODER_2_AB, 1, 1);
     if (!encoder2_opt.has_value()) return -1;
     auto encoder2 = std::move(encoder2_opt.value());
+
+    auto encoder3_opt = Encoder::acquire_other(encoder, ENCODER_3_AB, 2, 2);
+    if (!encoder3_opt.has_value()) return -1;
+    auto encoder3 = std::move(encoder3_opt.value());
+
+    auto encoder4_opt = Encoder::acquire_other(encoder, ENCODER_4_AB, 3, 3);
+    if (!encoder4_opt.has_value()) return -1;
+    auto encoder4 = std::move(encoder4_opt.value());
 
     auto buffers = AudioDeviceBuffers();
 
