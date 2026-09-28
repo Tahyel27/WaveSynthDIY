@@ -23,10 +23,12 @@ class UI
 
     EncoderBankEntry * active_encoder_bank;
 
-    const int WAVETABLE_COUNT = 6;
+    const int WAVETABLE_COUNT = 5;
 
 public:
     UI();
+
+    void init_ui(AudioStack &audio_stack);
 
     void process_event(Event &event, AudioStack &audio_stack);
 
@@ -81,6 +83,25 @@ UI::UI()
     //activate first the wavetable index encoder bank:
     active_encoder_bank = &wtind_bank[0];
 }   
+
+void UI::init_ui(AudioStack &audio_stack)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        auto opt = adsr1_bank[i].emit_command();
+        if (opt.has_value()) audio_stack.send_command(opt.value());
+        opt = adsr2_bank[i].emit_command();
+        if (opt.has_value()) audio_stack.send_command(opt.value());
+        opt = wtind_bank[i].emit_command();
+        if (opt.has_value()) audio_stack.send_command(opt.value());
+        opt = filt_bank[i].emit_command();
+        if (opt.has_value()) audio_stack.send_command(opt.value());
+        opt = phmod_bank[i].emit_command();
+        if (opt.has_value()) audio_stack.send_command(opt.value());
+        opt = lfofr_bank[i].emit_command();
+        if (opt.has_value()) audio_stack.send_command(opt.value());
+    }
+}
 
 void UI::process_event(Event &event, AudioStack &audio_stack)
 {
