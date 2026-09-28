@@ -132,4 +132,28 @@ struct EncoderBankEntry
 
         return command;
     }
+
+    std::optional<AudioCommand> emit_command()
+    {
+        if (target_ext_register == -1) return std::nullopt;
+
+        auto command = SetExtRegister();
+
+        command.register_ID = target_ext_register;
+
+        if (auto *encoder = std::get_if<EncoderMapLinear>(&mapping))
+        {
+            command.val.f = encoder->current_value;
+        }
+        else if (auto *encoder = std::get_if<EncoderMapLog>(&mapping))
+        {
+            command.val.f = encoder->current_value;
+        }
+        else if (auto *encoder = std::get_if<EncoderMapDiscrete>(&mapping))
+        {
+            command.val.u = encoder->m_counter / encoder->m_turns_per_step;
+        }
+
+        return command;
+    }
 };
