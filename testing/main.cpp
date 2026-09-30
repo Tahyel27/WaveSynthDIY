@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -12,6 +13,12 @@
 
 using namespace Synth;
 
+struct AudioContext 
+{
+    AudioStack * stack;
+    std::vector<int> record;
+};
+
 // PortAudio callback using PolyphonyManager
 static int paCallback(const void *inputBuffer, void *outputBuffer,
                       unsigned long framesPerBuffer,
@@ -19,7 +26,10 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
                       PaStreamCallbackFlags statusFlags,
                       void *userData)
 {
-    AudioStack* stack = static_cast<AudioStack*>(userData);
+    AudioContext * ctx = static_cast<AudioContext*>(userData);
+    auto stack = ctx->stack;
+    auto &record = ctx->record;
+    //AudioStack* stack = static_cast<AudioStack*>(userData);
     uint32_t* out = static_cast<uint32_t*>(outputBuffer);
 
     if (framesPerBuffer == Synth::BUFFER_SIZE) {
@@ -37,7 +47,45 @@ static int paCallback(const void *inputBuffer, void *outputBuffer,
         }
     }
 
+    for (int i = 0; i < framesPerBuffer; i++)
+    {
+        record.push_back(out[i*2]);
+    }
+
     return paContinue;
+}
+
+void write_to_file(AudioContext &context)
+{
+    std::cout << "Outputting to file" << std::endl;
+    
+    std::ofstream ostream("output.dat", std::ios::trunc);
+
+    float dt = 1. / static_cast<float>(Synth::SPS);
+
+    float t = 0.0;
+    for (auto &&s : context.record)
+    {
+        ostream << std::scientific << t << " " << s << "\n";
+        t += dt; 
+    }
+}
+
+void set_up_external(ScalarRegister &ext) {
+    using namespace Synth;
+
+    ext[EXT_ADSR1_ATTACK].f = 0.0f;
+    ext[EXT_ADSR1_DECAY].f = 0.2f;
+    ext[EXT_ADSR1_SUSTAIN].f = 0.8f;
+    ext[EXT_ADSR1_RELEASE].f = 0.1f;
+
+    ext[EXT_ADSR2_ATTACK].f = 0.0f;
+    ext[EXT_ADSR2_DECAY].f = 0.2f;
+    ext[EXT_ADSR2_SUSTAIN].f = 0.8f;
+    ext[EXT_ADSR2_RELEASE].f = 0.1f;
+
+    ext[EXT_WAVETABLE1_INDEX].u = 0;
+    ext[EXT_WAVETABLE2_INDEX].u = 0;
 }
 
 int main() {
@@ -48,8 +96,9 @@ int main() {
     ScalarRegister ext_reg;
 
     PolyphonyManager manager{&pool, &short_pool, &ext_reg};
-    EffectStack fx_stack{EffectStackConfig{.hard_clip = true, .hard_clip_gain = 1.0f} };
+    EffectStack fx_stack{EffectStackConfig{.hard_clip = false, .soft_clip = true, .hard_clip_gain = 1.0f } };
     auto audio_stack = AudioStack(manager, fx_stack);
+    auto context = AudioContext{ .stack = &audio_stack, .record = std::vector<int>()};
 
     // Instruction patch designed for PolyphonyManager:
     // Frequency is passed in ScalarReg(0) via play_note()
@@ -131,7 +180,12 @@ int main() {
         }
     };
 
-    manager.set_instructions(instructions, 9);
+    auto patch = Synth::two_table_patch();
+
+    set_up_external(ext_reg);
+
+    //manager.set_instructions(instructions, 9);
+    manager.set_instructions(patch.instructions, patch.count);
     manager.set_release_samples(static_cast<uint32_t>(0.5f * Synth::SPS));
 
     std::cout << "Initializing PortAudio...\n";
@@ -149,7 +203,7 @@ int main() {
                                Synth::SPS,         /* sample rate */
                                Synth::BUFFER_SIZE, /* frames per buffer */
                                paCallback,
-                               &audio_stack);
+                               &context);
                                
     if (err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << "\n";
@@ -170,7 +224,7 @@ int main() {
     // Test 1: Arpeggio (playing notes sequentially to build a chord)
     std::cout << "1. Playing C Major chord arpeggio (C4, E4, G4, C5)...\n";
     int v1 = manager.play_note(261.63f, 0.8f); // C4
-    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
     
     int v2 = manager.play_note(329.63f, 0.8f); // E4
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -227,5 +281,8 @@ int main() {
     Pa_Terminate();
 
     std::cout << "PolyphonyManager test completed.\n";
+
+    write_to_file(context);
+
     return 0;
 }
