@@ -6,6 +6,7 @@
 struct EffectStackConfig
 {
     bool hard_clip = false;
+    bool soft_clip = false;
     float_t hard_clip_gain = 2.0f;
 };
 
@@ -25,6 +26,15 @@ struct EffectStack
             for (size_t i = 0; i < BUFFER_SIZE; i++)
             {
                 audio_buffer[i] = std::clamp(audio_buffer[i] * m_config.hard_clip_gain, -1.0f, 1.0f);
+            }
+        }
+
+        if (m_config.soft_clip)
+        {
+            for (size_t i = 0; i < BUFFER_SIZE; i++)
+            {
+                float value = std::clamp(audio_buffer[i], -1.49f, 1.49f);
+                audio_buffer[i] = value - 0.15f * value * value * value;
             }
         }
         
