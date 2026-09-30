@@ -303,15 +303,15 @@ namespace Synth
                 Operand::ScalarReg(13),     // State z1
                 Operand::ScalarReg(14),     // State z2
                 Operand::BufferReg(3),      // Input signal
-                Operand::ScalarReg(15),    // Modulated cutoff
+                Operand::ExternalReg(EXT_FILT1_CUTOFF),   // Modulated cutoff
                 Operand::Immediate_f(0.8f), // Resonance Q
                 Operand::BufferReg(0)       // Filtered audio out
             },
             { // 8. soft clip distortion
                 OpCode::SOFTCLIP,
                 Operand::BufferReg(0),
-                Operand::Immediate_f(1.0f),
-                Operand::BufferReg(0)
+                Operand::Immediate_f(0.6f),
+                Operand::BufferReg(1)
             },
             // 9. MASTER_OUT: Output audio to master buffer
             {
