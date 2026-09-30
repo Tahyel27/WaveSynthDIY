@@ -77,7 +77,8 @@ struct AudioStack : public AudioSource
         
         for (size_t i = 0; i < Synth::BUFFER_SIZE; i++)
         {
-            buffer.write16bit(i, static_cast<int16_t>(Synth::maxamp * float_buffer[i]), AudioBuffer::Mode::MONO);
+            //buffer.write16bit(i, static_cast<int16_t>(Synth::maxamp * float_buffer[i]), AudioBuffer::Mode::MONO);
+            buffer.write32bit_float(i, float_buffer[i], AudioBuffer::Mode::MONO);
         }
     }
 

@@ -32,6 +32,27 @@ struct AudioBuffer
             buffer[2 * i + 1] = value << 16;
         }
     }
+
+    inline void write32bit_float(int i, float value, Mode mode)
+    {
+        constexpr int MAX = 2147483647;
+
+        int val = static_cast<int32_t>(value * MAX * 0.9999);
+        
+        if (mode == Mode::LEFT)
+        {
+            buffer[2 * i] = val;
+        }
+        else if (mode == Mode::RIGHT)
+        {
+            buffer[2 * i + 1] = val;
+        }
+        else
+        {
+            buffer[2 * i] = val;
+            buffer[2 * i + 1] = val;
+        }
+    }
 };
 
 struct AudioSource
