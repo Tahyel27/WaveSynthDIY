@@ -63,7 +63,7 @@ UI::UI()
 
     //filter
     const auto filter_f_encoder = EncoderMapLog(50.f, 15000.f, 1000, 2000.f);
-    const auto filter_r_encoder = EncoderMapLinear(0.0f, 1.0f, 0.01f, 0.9f);
+    const auto filter_r_encoder = EncoderMapLinear(0.05f, 0.99f, 0.01f, 0.9f);
     filt_bank[0] = EncoderBankEntry(filter_f_encoder, EXT_FILT1_CUTOFF);
     filt_bank[1] = EncoderBankEntry(filter_r_encoder, EXT_FILT1_RESONANCE);
     filt_bank[2] = EncoderBankEntry(filter_f_encoder, EXT_FILT2_CUTOFF);
@@ -117,7 +117,7 @@ void UI::process_event(Event &event, AudioStack &audio_stack)
             auto command = command_opt.value();
             auto setext = std::get<SetExtRegister>(command);
 
-            printf("External register %d will be set to %d\n", setext.register_ID, setext.val.u);
+            //printf("External register %d will be set to %.3f\n", setext.register_ID, setext.val.f);
 
             audio_stack.send_command(command);
         }
