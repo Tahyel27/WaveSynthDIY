@@ -4306,6 +4306,12 @@
 		(uuid "6f445fd4-5ef0-4c7b-b70b-107ca1ed0688")
 	)
 	(junction
+		(at 147.32 177.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "756efff2-3374-4819-9578-6e4bbb889c83")
+	)
+	(junction
 		(at 347.98 109.22)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5031,6 +5037,16 @@
 	)
 	(wire
 		(pts
+			(xy 147.32 175.26) (xy 147.32 177.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "763d688e-b32e-47c1-b8f1-c0269c1784af")
+	)
+	(wire
+		(pts
 			(xy 43.18 104.14) (xy 43.18 106.68)
 		)
 		(stroke
@@ -5271,6 +5287,16 @@
 	)
 	(wire
 		(pts
+			(xy 147.32 177.8) (xy 186.69 177.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a30b6832-14e7-4957-8024-54c0c1c37e06")
+	)
+	(wire
+		(pts
 			(xy 92.71 111.76) (xy 77.47 111.76)
 		)
 		(stroke
@@ -5331,7 +5357,7 @@
 	)
 	(wire
 		(pts
-			(xy 177.8 177.8) (xy 186.69 177.8)
+			(xy 139.7 177.8) (xy 147.32 177.8)
 		)
 		(stroke
 			(width 0)
@@ -6105,7 +6131,7 @@
 	)
 	(global_label "MIDI_RX"
 		(shape input)
-		(at 177.8 177.8 180)
+		(at 139.7 177.8 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6115,7 +6141,7 @@
 		)
 		(uuid "da288d1d-951e-4eeb-9074-f219e21cfe36")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.4367 177.8 0)
+			(at 129.3367 177.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6882,6 +6908,76 @@
 			(project ""
 				(path "/e1f428d7-c697-4d42-b53d-fafe596981f6"
 					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 147.32 171.45 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2d72ff63-ce6c-4f08-a2b0-20c51df9026a")
+		(property "Reference" "R11"
+			(at 149.86 170.1799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4k7"
+			(at 149.86 172.7199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 145.542 171.45 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 147.32 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 147.32 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "19b6561c-0405-4e74-8560-cb63aea68655")
+		)
+		(pin "2"
+			(uuid "da41eb2f-6863-4103-b744-dba907e8cd8f")
+		)
+		(instances
+			(project ""
+				(path "/e1f428d7-c697-4d42-b53d-fafe596981f6"
+					(reference "R11")
 					(unit 1)
 				)
 			)
@@ -9202,6 +9298,72 @@
 			(project ""
 				(path "/e1f428d7-c697-4d42-b53d-fafe596981f6"
 					(reference "#PWR020")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 147.32 167.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d24844df-5a2e-4087-afd1-b67e95f3c21e")
+		(property "Reference" "#PWR024"
+			(at 147.32 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 147.32 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 147.32 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 147.32 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 147.32 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d4e506dc-8686-47bc-ad48-0f2ad5aaf09f")
+		)
+		(instances
+			(project ""
+				(path "/e1f428d7-c697-4d42-b53d-fafe596981f6"
+					(reference "#PWR024")
 					(unit 1)
 				)
 			)
