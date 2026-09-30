@@ -26,7 +26,8 @@ class PolyphonyManager
 
     alignas(32) std::array<float_t, BUFFER_SIZE> master_buffer;
 
-    const float output_gain = 0.7f;
+    //0.3 seems the best from playing around with a keyboard connected to the synth
+    const float output_gain = 0.3f;
     float gain = 0.7f;
 
     ScalarRegister * ext_register;
@@ -104,7 +105,8 @@ void PolyphonyManager::render_audio(float_t * out_buffer)
     float gain_target = output_gain;
     if (active_voices > 0) gain_target = output_gain / sqrtf(active_voices);
 
-    gain = gain + (gain_target - gain) * 0.3f;
+    //gain = gain + (gain_target - gain) * 0.3f;
+    gain = output_gain;
 
     for (auto& voice : voices)
     {
