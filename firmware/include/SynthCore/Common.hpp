@@ -14,7 +14,7 @@ namespace Synth
     constexpr size_t BUFFER_SIZE = 512;
     constexpr size_t CHUNK_SIZE = 32;
     constexpr size_t CHUNKS_PER_BUFFER = BUFFER_SIZE / CHUNK_SIZE;
-    constexpr int VOICE_COUNT = 6;
+    constexpr int VOICE_COUNT = 12;
     constexpr int MAX_GRAPH_NODES = 20;
     constexpr int maxamp = 32767;
     constexpr size_t REGISTER_SIZE = 30;
