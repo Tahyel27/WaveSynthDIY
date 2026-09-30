@@ -276,6 +276,11 @@ namespace Synth
                 auto ptr = get_scalar(op);
                 return ShortBufferView{ptr, ptr};
             }
+            else if (op.type == OperandType::EXT_REG)
+            {
+                auto ptr = get_scalar(op);
+                return ShortBufferView{ptr, ptr};
+            }
             else if (op.type == OperandType::IMMEDIATE)
             {
                 return ShortBufferView{&op.value.f, &op.value.f};
