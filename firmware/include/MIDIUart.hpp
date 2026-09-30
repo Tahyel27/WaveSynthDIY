@@ -8,6 +8,8 @@
 
 #define MIDI_BAUD_RATE 31250
 
+const int MIDI_QUEUE_LENGTH = 512;
+
 static queue_t MIDI_UART_QUEUE;
 
 void on_uart0_rx()
@@ -78,7 +80,7 @@ public:
     {
         MidiReceiver receiver{};
         
-        queue_init(&MIDI_UART_QUEUE, sizeof(char), 128);
+        queue_init(&MIDI_UART_QUEUE, sizeof(char), MIDI_QUEUE_LENGTH);
 
         uart_init(uart0, MIDI_BAUD_RATE);
         receiver.uart = uart0;
@@ -98,7 +100,7 @@ public:
     {
         MidiReceiver receiver{};
 
-        queue_init(&MIDI_UART_QUEUE, sizeof(char), 128);
+        queue_init(&MIDI_UART_QUEUE, sizeof(char), MIDI_QUEUE_LENGTH);
 
         uart_init(uart1, MIDI_BAUD_RATE);
         receiver.uart = uart1;
