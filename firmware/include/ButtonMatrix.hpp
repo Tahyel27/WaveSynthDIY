@@ -27,6 +27,7 @@ class ButtonMatrix
     //external shift register controls
     SPIHandler * spi = nullptr; //used to turn on rows
     PioHandler   pio; //used to shift in a whole row
+    uint cs_pin;
 
     int rows = 0; int columns = 0;
 
@@ -44,13 +45,18 @@ public:
     //row set SPI is connected to the shift register that turns on rows
     //row read pins are connected to the the shift register that connects to each column
     static std::optional<ButtonMatrix> claim(SPIHandler * row_set_spi, uint row_read_data,
-        uint row_read_clock, uint row_read_latch,
+        uint row_read_clock, uint row_read_latch, uint cs_pin,
         int rows, int columns) 
     {
         auto matrix = ButtonMatrix{};
         matrix.spi = row_set_spi;
         matrix.rows = rows;
         matrix.columns = columns;
+        matrix.cs_pin = cs_pin;
+
+        gpio_init(matrix.cs_pin);
+        gpio_set_dir(matrix.cs_pin, GPIO_OUT);
+        gpio_put(matrix.cs_pin, true);
 
         auto pio_opt = PioHandler::acquire(&button_array_program, button_array_program_get_default_config);
         if (!pio_opt.has_value())
@@ -72,7 +78,8 @@ public:
 
     ButtonMatrix(ButtonMatrix && other) 
         : spi(other.spi), pio(std::move(other.pio)),
-          columns(other.columns), rows(other.rows)
+          columns(other.columns), rows(other.rows),
+          cs_pin(other.cs_pin)
     {
         other.spi = nullptr; //invalidate other
         std::copy(other.prev_row_states.begin(), other.prev_row_states.end(), prev_row_states.begin()); //copy state
@@ -89,8 +96,10 @@ public:
         for (uint r = 0; r < rows; r++)
         {
             //select row
+            gpio_put(cs_pin, false);
             row_set_byte = 0b0000'0001 << r;
             spi->write_blocking((uint8_t*)&row_set_byte, 1);
+            gpio_put(cs_pin, true);
 
             pio.clear_fifos();
             //read row

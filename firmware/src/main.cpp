@@ -31,11 +31,13 @@ const uint ENCODER_5_AB = 0;
 
 const uint PCM5102A_DATA = 12;
 const uint PCM5102A_LCK = 13;
+//         PCM5102A_BCK = 14
 
 const auto BUTTON_SPI = spi0;
 const uint BUTTON_IN_SPI_MISO = 0;
 const uint BUTTON_IN_SPI_MOSI = 3;
 const uint BUTTON_IN_SPI_SCK = 2;
+const uint BUTTON_IN_SPI_CS = 4;
 
 const uint BUTTON_OUT_DATA = 19;
 const uint BUTTON_OUT_CLOCK = 20;
@@ -108,7 +110,8 @@ int main()
         &spi, 
         BUTTON_OUT_DATA, 
         BUTTON_OUT_CLOCK, 
-        BUTTON_OUT_LATCH, 
+        BUTTON_OUT_LATCH,
+        BUTTON_IN_SPI_CS, 
         4, 
         8
     );
